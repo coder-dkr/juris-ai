@@ -59,6 +59,15 @@ export const apiService = {
     return response.data;
   },
 
+  // Surrender case
+  surrenderCase: async (caseId: string, side: string) => {
+    const response = await apiClient.post('/surrender', {
+      caseId,
+      side,
+    });
+    return response.data;
+  },
+
   // Request verdict
   requestVerdict: async (caseId: string, contextNote?: string) => {
     const response = await apiClient.post('/verdict', {

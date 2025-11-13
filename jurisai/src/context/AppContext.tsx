@@ -7,6 +7,29 @@ export interface CaseState {
   loading: boolean;
   error: string | null;
   uploadProgress: number;
+  phase: 'initial' | 'arguments' | 'closed';
+  caseStatus: 'active' | 'surrendered' | 'ai_closed' | 'completed';
+  surrenderedBy: 'plaintiff' | 'defense' | null;
+  decisions: Array<{
+    id: string;
+    text: string;
+    timestamp: Date;
+    type: 'initial' | 'interim' | 'final';
+  }>;
+  arguments: {
+    plaintiff: Array<{
+      id: string;
+      text: string;
+      timestamp: Date;
+      type: 'initial' | 'counter';
+    }>;
+    defense: Array<{
+      id: string;
+      text: string;
+      timestamp: Date;
+      type: 'initial' | 'counter';
+    }>;
+  };
 }
 
 type SetCaseIdAction = { type: 'SET_CASE_ID'; payload: string };
@@ -16,6 +39,11 @@ type SetErrorAction = { type: 'SET_ERROR'; payload: string };
 type ClearErrorAction = { type: 'CLEAR_ERROR' };
 type SetUploadProgressAction = { type: 'SET_UPLOAD_PROGRESS'; payload: number };
 type ResetStateAction = { type: 'RESET_STATE' };
+type SetPhaseAction = { type: 'SET_PHASE'; payload: 'initial' | 'arguments' | 'closed' };
+type AddDecisionAction = { type: 'ADD_DECISION'; payload: { text: string; type: 'initial' | 'interim' | 'final' } };
+type AddArgumentAction = { type: 'ADD_ARGUMENT'; payload: { side: 'plaintiff' | 'defense'; text: string; type: 'initial' | 'counter' } };
+type SurrenderCaseAction = { type: 'SURRENDER_CASE'; payload: 'plaintiff' | 'defense' };
+type CloseCaseAction = { type: 'CLOSE_CASE'; payload: { reason: 'ai_closed' | 'completed' } };
 
 export type AppAction = 
   | SetCaseIdAction
@@ -24,7 +52,12 @@ export type AppAction =
   | SetErrorAction
   | ClearErrorAction
   | SetUploadProgressAction
-  | ResetStateAction;
+  | ResetStateAction
+  | SetPhaseAction
+  | AddDecisionAction
+  | AddArgumentAction
+  | SurrenderCaseAction
+  | CloseCaseAction;
 
 export interface AppContextType {
   state: CaseState;
@@ -37,6 +70,11 @@ export interface AppContextType {
   clearError: () => void;
   setUploadProgress: (progress: number) => void;
   resetState: () => void;
+  setPhase: (phase: 'initial' | 'arguments' | 'closed') => void;
+  addDecision: (text: string, type: 'initial' | 'interim' | 'final') => void;
+  addArgument: (side: 'plaintiff' | 'defense', text: string, type: 'initial' | 'counter') => void;
+  surrenderCase: (side: 'plaintiff' | 'defense') => void;
+  closeCase: (reason: 'ai_closed' | 'completed') => void;
 }
 
 // Create context

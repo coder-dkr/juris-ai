@@ -12,14 +12,15 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "cors": "^2.8.5",
+    "groq-sdk": "^0.34.0",
+    "mammoth": "^1.4.21",
+    "mongodb": "^7.0.0",
     "mongoose": "^7.5.0",
     "multer": "^1.4.5-lts.1",
-    "pdf-parse": "^1.1.1",
-    "mammoth": "^1.4.21",
-    "axios": "^1.4.0"
+    "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
