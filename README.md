@@ -35,3 +35,10 @@ Notes
 -----
 - The `server/lib/groqClient.js` is a simple wrapper. If `GROQ_API_KEY` is not set, the server will return a mocked verdict so you can iterate locally.
 - File parsing uses `pdf-parse` and `mammoth` for DOCX. Large files should be processed asynchronously in production.
+
+
+
+Youtube Demo Link
+-----------------
+- https://youtu.be/ubz8KSRnhU0
+- https://www.youtube.com/watch?v=ubz8KSRnhU0
