@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface CaseData {
   _id: string;
@@ -205,10 +207,10 @@ export const ClosedCaseView: React.FC<ClosedCaseViewProps> = ({
                   </p>
                 </div>
               </div>
-              <div className="prose prose-invert prose-blue max-w-none">
-                <div className="whitespace-pre-wrap text-gray-100 text-sm leading-relaxed">
+              <div className="prose prose-invert prose-sm max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {finalVerdict?.text || 'No final verdict available.'}
-                </div>
+                </ReactMarkdown>
               </div>
             </div>
           </div>
@@ -238,10 +240,14 @@ export const ClosedCaseView: React.FC<ClosedCaseViewProps> = ({
                       </span>
                     </div>
                     <div className="bg-gray-800/30 rounded-lg p-4">
-                      <p className="text-sm text-gray-300 leading-relaxed line-clamp-3">
-                        {verdict.text.substring(0, 300)}
-                        {verdict.text.length > 300 ? '...' : ''}
-                      </p>
+                      <div className="prose prose-invert prose-sm max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {verdict.text.length > 300 
+                            ? verdict.text.substring(0, 300) + '...'
+                            : verdict.text
+                          }
+                        </ReactMarkdown>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useApp } from '../hooks/useApp';
 
 interface VerdictPanelProps {
@@ -121,8 +123,10 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = ({
                           </span>
                         </div>
                         <div className="bg-black/40 border border-gray-700/30 rounded-lg p-4">
-                          <div className="whitespace-pre-wrap text-gray-100 text-sm leading-relaxed">
-                            {decision.text}
+                          <div className="prose prose-invert prose-sm max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {decision.text}
+                            </ReactMarkdown>
                           </div>
                         </div>
                       </div>
@@ -159,10 +163,10 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = ({
             <div className="bg-black/40 border border-gray-700/30 rounded-lg min-h-[250px] sm:min-h-[300px] overflow-auto">
               {currentVerdict ? (
                 <div className="p-6">
-                  <div className="prose prose-invert prose-blue max-w-none">
-                    <div className="whitespace-pre-wrap text-gray-100 text-sm sm:text-base leading-relaxed font-mono">
+                  <div className="prose prose-invert prose-sm sm:prose-base max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {currentVerdict}
-                    </div>
+                    </ReactMarkdown>
                   </div>
                 </div>
               ) : (

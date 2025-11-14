@@ -29,7 +29,7 @@ Project layout
 --------------
 - `server/` — Express backend, Mongoose models, Groq client wrapper, API routes.
 - `jurisai/` — React (Vite + TS) frontend with upload, argument panels and SSE.
-- `DESIGN.md` — design rationale and next steps.
+
 
 Notes
 -----
