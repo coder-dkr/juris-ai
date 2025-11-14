@@ -34,12 +34,23 @@ apiClient.interceptors.response.use(
 
 // API service functions
 export const apiService = {
+  // Create new case
+  createCase: async (title: string, caseType: string) => {
+    const response = await apiClient.post('/create-case', {
+      title,
+      type: caseType,
+      createdAt: new Date().toISOString()
+    });
+    return response.data;
+  },
+
   // Upload document
-  uploadDocument: async (file: File, side: string, caseTitle: string) => {
+  uploadDocument: async (file: File, side: string, documentName: string, caseId: string) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('side', side);
-    formData.append('caseTitle', caseTitle);
+    formData.append('documentName', documentName);
+    formData.append('caseId', caseId);
     
     const response = await apiClient.post('/upload', formData, {
       headers: {

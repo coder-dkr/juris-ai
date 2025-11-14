@@ -16,6 +16,9 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
   const isCaseClosed = phase === 'closed';
   const sideArguments = caseArguments[side as 'plaintiff' | 'defense'] || [];
   const hasInitialArgument = sideArguments.some(arg => arg.type === 'initial');
+  const counterArguments = sideArguments.filter(arg => arg.type === 'counter');
+  const counterArgumentsRemaining = Math.max(0, 5 - counterArguments.length);
+  const canSubmitCounterArgument = counterArgumentsRemaining > 0;
   const latestDecision = decisions[decisions.length - 1];
 
   async function submitArg() {
@@ -29,11 +32,16 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
       return;
     }
 
+    const argumentType = hasInitialArgument ? 'counter' : 'initial';
+    
+    if (argumentType === 'counter' && !canSubmitCounterArgument) {
+      setError('Counter-argument limit reached (5 maximum per side)');
+      return;
+    }
+
     try {
       setLoading(true);
       clearError();
-      
-      const argumentType = hasInitialArgument ? 'counter' : 'initial';
       
       // Call API to submit argument
       await apiService.submitArgument(caseId, side, text);
@@ -89,13 +97,17 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
     if (!hasInitialArgument) {
       return `Present your initial ${side} arguments here...`;
     }
-    return `Present counter-arguments or additional evidence...`;
+    if (!canSubmitCounterArgument) {
+      return 'Counter-argument limit reached (5 maximum)';
+    }
+    return `Present counter-arguments or additional evidence... (${counterArgumentsRemaining} remaining)`;
   };
 
   const getButtonText = () => {
     if (isCaseClosed) return 'Case Closed';
     if (!hasInitialArgument) return 'Submit Initial Argument';
-    return 'Submit Counter-Argument';
+    if (!canSubmitCounterArgument) return 'Argument Limit Reached';
+    return `Submit Counter-Argument (${counterArgumentsRemaining} left)`;
   };
 
   return (
@@ -147,6 +159,29 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
         </div>
       )}
 
+      {/* Show counter-argument limit status */}
+      {hasInitialArgument && (
+        <div className="mb-4 p-3 bg-gray-800/30 border border-gray-700/20 rounded-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-300">Counter-Arguments</span>
+            <div className="flex items-center gap-2">
+              <div className={`text-xs px-2 py-1 rounded-full ${
+                counterArgumentsRemaining > 2 
+                  ? 'bg-green-600/20 text-green-300' 
+                  : counterArgumentsRemaining > 0 
+                  ? 'bg-amber-600/20 text-amber-300'
+                  : 'bg-red-600/20 text-red-300'
+              }`}>
+                {counterArguments.length}/5 Used
+              </div>
+              <span className="text-xs text-gray-500">
+                {counterArgumentsRemaining} remaining
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Show argument history */}
       {sideArguments.length > 0 && (
         <div className="mb-4">
@@ -182,7 +217,7 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
             rows={6} 
             className="w-full px-4 py-4 bg-gray-800/70 border border-gray-600/50 rounded-lg text-sm text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none transition-all"
             placeholder={getPlaceholder()}
-            disabled={isCaseClosed}
+            disabled={isCaseClosed || (hasInitialArgument && !canSubmitCounterArgument)}
           />
           <p className="text-xs text-gray-400 mt-3 flex items-center gap-2">
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -194,7 +229,7 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
         
         <button 
           onClick={submitArg} 
-          disabled={!caseId || !text.trim() || isCaseClosed}
+          disabled={!caseId || !text.trim() || isCaseClosed || (hasInitialArgument && !canSubmitCounterArgument)}
           className={`w-full py-3 px-4 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl ${
             isCaseClosed
               ? 'bg-linear-to-r from-gray-600 to-gray-700 text-gray-300'

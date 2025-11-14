@@ -5,3 +5,6 @@ export { ErrorNotification } from './ErrorNotification';
 export { LoadingIndicator } from './LoadingIndicator';
 export { SidePanel } from './SidePanel';
 export { MainPanel } from './MainPanel';
+export { HomePage } from './HomePage';
+export { CourtRoom } from './CourtRoom';
+export { ClosedCaseView } from './ClosedCaseView';

@@ -50,7 +50,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         </p>
       </div>
       
-      <UploadPanel onUploaded={onUploaded} defaultSide={side} />
+      <UploadPanel onUploaded={onUploaded} defaultSide={side} caseId={caseId || ''} />
       <ArgumentPanel caseId={caseId} side={side} />
     </div>
   );

@@ -1,118 +1,182 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import { useApp } from './hooks/useApp';
+import { HomePage, CourtRoom, ClosedCaseView, ErrorNotification } from './components';
 import { apiService } from './services/api';
-import { SidePanel, MainPanel, ErrorNotification } from './components';
+
+interface CaseData {
+  _id: string;
+  title: string;
+  caseType?: string;
+  documents: Array<{
+    filename: string;
+    side: string;
+    content: string;
+  }>;
+  arguments: Array<{
+    _id: string;
+    side: string;
+    text: string;
+    createdAt: string;
+  }>;
+  verdicts: Array<{
+    _id: string;
+    text: string;
+    createdAt: string;
+    raw?: {
+      surrenderedBy?: string;
+      type?: string;
+    };
+  }>;
+  argumentCount: number;
+  verdictCount: number;
+}
 
 function App() {
-  const { state, setCaseId, setVerdict, setLoading, setError, clearError } = useApp();
-  const { caseId, verdict, loading, error } = state;
+  const { state, clearError } = useApp();
+  const { error } = state;
 
-  useEffect(() => {
-    const es = new EventSource('/api/events');
-    es.onmessage = (ev) => {
-      try {
-        const d = JSON.parse(ev.data);
-        if (d.type === 'verdict') setVerdict(d.text);
-      } catch (err) {
-        console.warn('Invalid SSE data', err);
-      }
-    };
-    
-    es.onerror = (err) => {
-      console.error('SSE connection error:', err);
-    };
-    
-    return () => es.close();
-  }, [setVerdict]);
+  return (
+    <div className="min-h-screen w-full bg-amber-600">
+      <ErrorNotification error={error} onClear={clearError} />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/case/:caseId" element={<CaseRoute />} />
+      </Routes>
+    </div>
+  );
+}
 
-  async function requestVerdict() {
-    if (!caseId) {
-      setError('No case selected');
-      return;
-    }
-    
+function Home() {
+  const navigate = useNavigate();
+  const { setError, clearError, setLoading } = useApp();
+
+  // Create new case
+  async function handleCreateCase(caseTitle: string, caseType: string) {
     try {
       setLoading(true);
       clearError();
       
-      const result = await apiService.requestVerdict(caseId);
-      setVerdict(result.text || JSON.stringify(result));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate verdict');
+      const result = await apiService.createCase(caseTitle, caseType);
+      
+      if (!result.caseId) {
+        throw new Error('Failed to create case - no case ID returned');
+      }
+      
+      navigate(`/case/${result.caseId}`);
+      
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to create case');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Join existing case
+  async function handleJoinCase(caseId: string) {
+    try {
+      setLoading(true);
+      clearError();
+      
+      const fetchedCaseData = await apiService.getCase(caseId);
+      
+      if (!fetchedCaseData) {
+        throw new Error('Case not found. Please check the Case ID.');
+      }
+      
+      navigate(`/case/${caseId}`);
+      
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to join case');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <ErrorNotification error={error} onClear={clearError} />
-      
-      {/* Desktop Layout */}
-      <div className="hidden lg:grid lg:grid-cols-[320px_1fr_320px] h-screen">
-        <div className="border-r border-gray-800/50">
-          <SidePanel 
-            side="plaintiff" 
-            caseId={caseId} 
-            onUploaded={setCaseId} 
-          />
-        </div>
-        
-        <MainPanel 
-          verdict={verdict}
-          loading={loading}
-          caseId={caseId}
-          onRequestVerdict={requestVerdict}
-        />
-        
-        <div className="border-l border-gray-800/50">
-          <SidePanel 
-            side="defense" 
-            caseId={caseId} 
-            onUploaded={setCaseId} 
-          />
-        </div>
-      </div>
-
-      {/* Mobile/Tablet Layout */}
-      <div className="lg:hidden">
-        <div className="sticky top-0 bg-gray-950/95 backdrop-blur-sm border-b border-gray-800/50 px-4 py-4 z-10">
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-linear-to-r from-purple-600 to-purple-700 flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-3m-3 3l-3-3" />
-              </svg>
-            </div>
-            <h1 className="text-xl font-bold text-white">
-              JurisAI
-            </h1>
-          </div>
-        </div>
-        
-        <div className="px-4 py-6">
-          <MainPanel 
-            verdict={verdict}
-            loading={loading}
-            caseId={caseId}
-            onRequestVerdict={requestVerdict}
-          />
-        </div>
-        
-        <div className="grid md:grid-cols-2 gap-6 p-4">
-          <SidePanel 
-            side="plaintiff" 
-            caseId={caseId} 
-            onUploaded={setCaseId} 
-          />
-          <SidePanel 
-            side="defense" 
-            caseId={caseId} 
-            onUploaded={setCaseId} 
-          />
-        </div>
-      </div>
-    </div>
+    <HomePage 
+      onCreateCase={handleCreateCase}
+      onJoinCase={handleJoinCase}
+    />
   );
+}
+
+function CaseRoute() {
+  const { caseId } = useParams<{ caseId: string }>();
+  const navigate = useNavigate();
+  const { setError, clearError, setLoading } = useApp();
+  const [caseData, setCaseData] = useState<CaseData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!caseId) return;
+
+    
+    async function fetchCase() {
+      try {
+        // setIsLoading(true);
+        // setLoading(true);
+        clearError();
+        
+        const fetchedCaseData = await apiService.getCase(caseId!);
+        
+        if (!fetchedCaseData) {
+          throw new Error('Case not found. Please check the Case ID.');
+        }
+        
+        setCaseData(fetchedCaseData);
+        
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'Failed to load case');
+      } finally {
+        setIsLoading(false);
+        setLoading(false);
+      }
+    }
+    
+    fetchCase();
+  }, []);
+
+  const isCaseClosed = (caseData: CaseData) => {
+    if (!caseData.verdicts || caseData.verdicts.length === 0) return false;
+    
+    const lastVerdict = caseData.verdicts[caseData.verdicts.length - 1];
+    
+    const isSurrendered = lastVerdict?.raw?.type === 'surrender';
+    const hasFinalVerdict = lastVerdict?.text?.toLowerCase().includes('final decision') ||
+                           lastVerdict?.text?.toLowerCase().includes('case closed') ||
+                           lastVerdict?.text?.toLowerCase().includes('verdict') ||
+                           caseData.argumentCount >= 10;
+    
+    return isSurrendered || hasFinalVerdict;
+  };
+
+  const handleBackToHome = () => {
+    navigate('/');
+  };
+
+  if (isLoading || !caseData) {
+    return (
+      <div className="min-h-screen w-full bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-400 text-lg">Loading case...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isCaseClosed(caseData)) {
+    return (
+      <ClosedCaseView
+        caseId={caseId!}
+        caseData={caseData}
+        onBackToHome={handleBackToHome}
+      />
+    );
+  }
+
+  return <CourtRoom caseId={caseId!} />;
 }
 
 export default App;
