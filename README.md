@@ -12,6 +12,9 @@ Requirements: Node 18+, npm, MongoDB running locally (or set MONGODB_URI)
 cd server
 npm install
 # set MONGODB_URI and GROQ_API_KEY in .env if available
+# set GROQ_API_URL as https://api.groq.ai/v1/llm
+# https://console.groq.com
+
 npm run dev
 ```
 
