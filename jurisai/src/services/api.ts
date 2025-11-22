@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: 'https://juris-ai-teho.onrender.com',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',

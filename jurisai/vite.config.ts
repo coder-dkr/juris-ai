@@ -6,9 +6,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    port: 5173,
-    proxy: {
-      '/api': 'https://juris-ai-teho.onrender.com'
-    }
+    port: 5173
   }
 })
