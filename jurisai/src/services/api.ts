@@ -34,7 +34,7 @@ apiClient.interceptors.response.use(
 
 // API service functions
 export const apiService = {
-  // Create new case
+
   createCase: async (title: string, caseType: string) => {
     const response = await apiClient.post('/create-case', {
       title,
@@ -44,7 +44,7 @@ export const apiService = {
     return response.data;
   },
 
-  // Upload document
+
   uploadDocument: async (file: File, side: string, documentName: string, caseId: string) => {
     const formData = new FormData();
     formData.append('file', file);

@@ -72,7 +72,7 @@ function Home() {
     }
   }
 
-  // Join existing case
+
   async function handleJoinCase(caseId: string) {
     try {
       setLoading(true);
