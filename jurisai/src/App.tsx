@@ -1,8 +1,13 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
-import { useApp } from './hooks/useApp';
-import { HomePage, CourtRoom, ClosedCaseView, ErrorNotification } from './components';
-import { apiService } from './services/api';
+import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate, useParams } from "react-router-dom";
+import { useApp } from "./hooks/useApp";
+import {
+  HomePage,
+  CourtRoom,
+  ClosedCaseView,
+  ErrorNotification,
+} from "./components";
+import { apiService } from "./services/api";
 
 interface CaseData {
   _id: string;
@@ -18,7 +23,7 @@ interface CaseData {
     side: string;
     text: string;
     createdAt: string;
-  }>;
+  }>; 
   verdicts: Array<{
     _id: string;
     text: string;
@@ -37,12 +42,16 @@ function App() {
   const { error } = state;
 
   return (
-    <div className="min-h-screen w-full bg-amber-600">
-      <ErrorNotification error={error} onClear={clearError} />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/case/:caseId" element={<CaseRoute />} />
-      </Routes>
+    <div className="min-h-screen w-full bg-legal-obsidian relative selection:bg-cyan-500/30 selection:text-cyan-200">
+      <div className="fixed inset-0 bg-grid opacity-20 pointer-events-none" />
+      <div className="fixed inset-0 bg-radial-gradient pointer-events-none" />
+      <div className="relative z-10">
+        <ErrorNotification error={error} onClear={clearError} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/case/:caseId" element={<CaseRoute />} />
+        </Routes>
+      </div>
     </div>
   );
 }
@@ -56,48 +65,44 @@ function Home() {
     try {
       setLoading(true);
       clearError();
-      
+
       const result = await apiService.createCase(caseTitle, caseType);
-      
+
       if (!result.caseId) {
-        throw new Error('Failed to create case - no case ID returned');
+        throw new Error("Failed to create case - no case ID returned");
       }
-      
+
       navigate(`/case/${result.caseId}`);
-      
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to create case');
+      setError(
+        error instanceof Error ? error.message : "Failed to create case"
+      );
     } finally {
       setLoading(false);
     }
   }
 
-
   async function handleJoinCase(caseId: string) {
     try {
       setLoading(true);
       clearError();
-      
+
       const fetchedCaseData = await apiService.getCase(caseId);
-      
+
       if (!fetchedCaseData) {
-        throw new Error('Case not found. Please check the Case ID.');
+        throw new Error("Case not found. Please check the Case ID.");
       }
-      
+
       navigate(`/case/${caseId}`);
-      
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to join case');
+      setError(error instanceof Error ? error.message : "Failed to join case");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <HomePage 
-      onCreateCase={handleCreateCase}
-      onJoinCase={handleJoinCase}
-    />
+    <HomePage onCreateCase={handleCreateCase} onJoinCase={handleJoinCase} />
   );
 }
 
@@ -111,48 +116,49 @@ function CaseRoute() {
   useEffect(() => {
     if (!caseId) return;
 
-    
     async function fetchCase() {
       try {
-        // setIsLoading(true);
-        // setLoading(true);
+        setIsLoading(true);
+        setLoading(true);
         clearError();
-        
+
         const fetchedCaseData = await apiService.getCase(caseId!);
-        
+
         if (!fetchedCaseData) {
-          throw new Error('Case not found. Please check the Case ID.');
+          throw new Error("Case not found. Please check the Case ID.");
         }
-        
+
         setCaseData(fetchedCaseData);
-        
       } catch (error) {
-        setError(error instanceof Error ? error.message : 'Failed to load case');
+        setError(
+          error instanceof Error ? error.message : "Failed to load case"
+        );
       } finally {
         setIsLoading(false);
         setLoading(false);
       }
     }
-    
+
     fetchCase();
   }, []);
 
   const isCaseClosed = (caseData: CaseData) => {
     if (!caseData.verdicts || caseData.verdicts.length === 0) return false;
-    
+
     const lastVerdict = caseData.verdicts[caseData.verdicts.length - 1];
-    
-    const isSurrendered = lastVerdict?.raw?.type === 'surrender';
-    const hasFinalVerdict = lastVerdict?.text?.toLowerCase().includes('final decision') ||
-                           lastVerdict?.text?.toLowerCase().includes('case closed') ||
-                           lastVerdict?.text?.toLowerCase().includes('verdict') ||
-                           caseData.argumentCount >= 10;
-    
+
+    const isSurrendered = lastVerdict?.raw?.type === "surrender";
+    const hasFinalVerdict =
+      lastVerdict?.text?.toLowerCase().includes("final decision") ||
+      lastVerdict?.text?.toLowerCase().includes("case closed") ||
+      lastVerdict?.text?.toLowerCase().includes("verdict") ||
+      caseData.argumentCount >= 10;
+
     return isSurrendered || hasFinalVerdict;
   };
 
   const handleBackToHome = () => {
-    navigate('/');
+    navigate("/");
   };
 
   if (isLoading || !caseData) {

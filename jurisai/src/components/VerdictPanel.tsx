@@ -1,7 +1,24 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { motion } from 'framer-motion';
+import { 
+  History, 
+  Scale, 
+  FileText,
+  Info,
+  Activity
+} from 'lucide-react';
 import { useApp } from '../hooks/useApp';
+import { InitialVerdictView } from './InitialVerdictView';
+import { InterimAnalysisView } from './InterimAnalysisView';
+import { FinalJudgmentView } from './FinalJudgmentView';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface VerdictPanelProps {
   currentVerdict?: string | null;
@@ -19,32 +36,32 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = ({
     switch (caseStatus) {
       case 'surrendered':
         return (
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-600/20 border border-red-600/30 rounded-lg">
-            <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium text-red-300">
-              Case Surrendered by {surrenderedBy}
+          <div className="flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest">
+              Surrender: {surrenderedBy}
             </span>
           </div>
         );
       case 'ai_closed':
         return (
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-600/20 border border-purple-600/30 rounded-lg">
-            <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-            <span className="text-sm font-medium text-purple-300">AI Closed Case</span>
+          <div className="flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-lg text-cyan-400">
+            <div className="w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest">System Closed</span>
           </div>
         );
       case 'completed':
         return (
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-600/20 border border-green-600/30 rounded-lg">
-            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-            <span className="text-sm font-medium text-green-300">Case Completed</span>
+          <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
+            <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest">Analysis Finalized</span>
           </div>
         );
       default:
         return (
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-600/20 border border-blue-600/30 rounded-lg">
-            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium text-blue-300">Case Active</span>
+          <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400">
+            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest">Active Litigation</span>
           </div>
         );
     }
@@ -53,140 +70,133 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = ({
   const totalArguments = caseArguments.plaintiff.length + caseArguments.defense.length;
   
   return (
-    <div className="w-full max-w-4xl lg:max-w-5xl">
-      <div className="text-center mb-6 lg:mb-8">
-        <div className="inline-flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-linear-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          </div>
-        </div>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">
-          AI Legal Analysis
-        </h1>
-        <p className="text-sm sm:text-base text-gray-400 mb-4">
-          Dynamic case evaluation with iterative decision-making
-        </p>
-        
-        <div className="flex items-center justify-center gap-4 flex-wrap">
-          {getStatusBadge()}
-          <div className="text-sm text-gray-400">
-            {decisions.length} Decision{decisions.length !== 1 ? 's' : ''} • {totalArguments} Argument{totalArguments !== 1 ? 's' : ''}
-          </div>
-        </div>
-      </div>
-      
-      <div className="space-y-6">
-        {/* Decision Timeline */}
-        {decisions.length > 0 && (
-          <div className="bg-gray-900/80 border border-gray-700/50 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden">
-            <div className="bg-gray-800/50 border-b border-gray-700/50 px-4 sm:px-6 py-4">
-              <h2 className="text-lg font-semibold text-gray-100 flex items-center gap-2">
-                <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                </svg>
-                Decision Timeline
-              </h2>
+    <div className="w-full space-y-12">
+      {/* Decisions History (if any) */}
+      {decisions.length > 0 && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-cyan-400" />
+              <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-500">Judicial Log</h3>
             </div>
-            
-            <div className="p-4 sm:p-6">
-              <div className="space-y-4">
-                {decisions.map((decision, index) => (
-                  <div key={decision.id} className="relative">
-                    {index !== decisions.length - 1 && (
-                      <div className="absolute left-4 top-10 bottom-0 w-0.5 bg-gray-700/50"></div>
-                    )}
-                    <div className="flex gap-4">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        decision.type === 'final' 
-                          ? 'bg-green-600' 
-                          : decision.type === 'interim' 
-                          ? 'bg-amber-600' 
-                          : 'bg-blue-600'
-                      }`}>
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            decision.type === 'final' 
-                              ? 'bg-green-600/20 text-green-300' 
-                              : decision.type === 'interim' 
-                              ? 'bg-amber-600/20 text-amber-300' 
-                              : 'bg-blue-600/20 text-blue-300'
-                          }`}>
-                            {decision.type === 'final' ? 'Final Decision' : decision.type === 'interim' ? 'Interim Decision' : 'Initial Decision'}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {decision.timestamp.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="bg-black/40 border border-gray-700/30 rounded-lg p-4">
-                          <div className="prose prose-invert prose-sm max-w-none">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {decision.text}
-                            </ReactMarkdown>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Current Verdict Display */}
-        <div className="bg-gray-900/80 border border-gray-700/50 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden">
-          <div className="bg-gray-800/50 border-b border-gray-700/50 px-4 sm:px-6 py-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-100 flex items-center gap-2">
-                <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                </svg>
-                Live Verdict Analysis
-              </h2>
-              {loading && (
-                <div className="flex items-center space-x-3 text-blue-400">
-                  <div className="relative">
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-400 border-t-transparent"></div>
-                  </div>
-                  <span className="text-sm font-medium">Analyzing case...</span>
-                </div>
-              )}
-            </div>
+            {getStatusBadge()}
           </div>
           
-          <div className="p-4 sm:p-6">
-            <div className="bg-black/40 border border-gray-700/30 rounded-lg min-h-[250px] sm:min-h-[300px] overflow-auto">
-              {currentVerdict ? (
-                <div className="p-6">
-                  <div className="prose prose-invert prose-sm sm:prose-base max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {currentVerdict}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 p-8">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mb-4 mx-auto">
-                      <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
+          <div className="space-y-4">
+            {decisions.map((decision, index) => {
+              const previousDecision = index > 0 ? decisions[index - 1] : null;
+              
+              return (
+                <React.Fragment key={decision.id}>
+                  {/* Connector Line */}
+                  {index !== decisions.length - 1 && (
+                    <div className="relative">
+                      <div className="absolute left-6 top-12 h-4 w-px bg-gradient-to-b from-slate-700 to-transparent" />
                     </div>
-                    <p className="text-sm sm:text-base font-medium text-gray-300 mb-2">
-                      {decisions.length > 0 ? 'Awaiting new arguments' : 'Awaiting case documents and arguments'}
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-500">
-                      {decisions.length > 0 ? 'Submit counter-arguments to continue the case' : 'Upload evidence from both parties to begin legal analysis'}
-                    </p>
+                  )}
+                  
+                  {decision.type === 'initial' && (
+                    <InitialVerdictView decision={decision} index={index} />
+                  )}
+                  {decision.type === 'interim' && (
+                    <InterimAnalysisView 
+                      decision={decision} 
+                      previousDecision={previousDecision}
+                      index={index} 
+                    />
+                  )}
+                  {decision.type === 'final' && (
+                    <FinalJudgmentView 
+                      decision={decision} 
+                      allDecisions={decisions}
+                      index={index} 
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      
+      {/* Active/New Verdict Analysis */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-500">
+              {currentVerdict ? 'Neural Resolution' : 'Analysis Feed'}
+            </h3>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-900/50 border border-white/5 rounded text-[10px] font-mono text-slate-500">
+               <Info className="w-3 h-3" />
+               <span>DATA: {totalArguments} SUBMISSIONS</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-linear-to-r from-cyan-500/20 to-transparent rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-1000" />
+          <div className="relative min-h-[400px] glass-panel rounded-3xl overflow-hidden border-white/10 p-8 flex flex-col">
+            {currentVerdict ? (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="prose-legal prose-invert"
+              >
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {currentVerdict}
+                </ReactMarkdown>
+              </motion.div>
+            ) : (
+              <div className="grow flex flex-col items-center justify-center text-center space-y-8 py-12">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-cyan-500/10 blur-3xl animate-pulse" />
+                  <div className="relative w-24 h-24 rounded-full border border-white/5 bg-slate-900/50 flex items-center justify-center">
+                    <Scale className="w-10 h-10 text-slate-700" />
                   </div>
                 </div>
-              )}
-            </div>
+                <div className="space-y-3">
+                  <h4 className="text-xl font-bold text-white tracking-tight">System Ready for Adjudication</h4>
+                  <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
+                    {decisions.length > 0 
+                      ? 'The Neural Judge has processed the latest counter-arguments. Initiate analysis to receive a revised resolution.' 
+                      : 'Upload evidentiary documentation and initial arguments from both divisions to begin the judicial simulation.'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-full">
+                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
+                  <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-[0.2em]">Neural Core: Standing By</span>
+                </div>
+              </div>
+            )}
+            
+            {loading && (
+              <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md flex flex-col items-center justify-center space-y-6 z-20">
+                <div className="relative w-24 h-24">
+                  <svg className="w-full h-full animate-spin text-cyan-500/20" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="10 5" />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Activity className="w-8 h-8 text-cyan-400 animate-pulse" />
+                  </div>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="text-sm font-bold text-white tracking-widest uppercase">Analyzing Precedents</div>
+                  <div className="flex items-center justify-center gap-1">
+                    {[1, 2, 3].map(i => (
+                      <motion.div
+                        key={i}
+                        animate={{ opacity: [0.2, 1, 0.2] }}
+                        transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
+                        className="w-1 h-1 bg-cyan-400 rounded-full"
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

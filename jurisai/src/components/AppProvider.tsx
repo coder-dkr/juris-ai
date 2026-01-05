@@ -46,7 +46,8 @@ const appReducer = (state: CaseState, action: AppAction): CaseState => {
           id: Date.now().toString(),
           text: action.payload.text,
           timestamp: new Date(),
-          type: action.payload.type
+          type: action.payload.type,
+          structured: action.payload.structured
         }],
         loading: false, 
         error: null 
@@ -95,7 +96,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const setUploadProgress = (progress: number) => dispatch({ type: 'SET_UPLOAD_PROGRESS', payload: progress });
   const resetState = () => dispatch({ type: 'RESET_STATE' });
   const setPhase = (phase: 'initial' | 'arguments' | 'closed') => dispatch({ type: 'SET_PHASE', payload: phase });
-  const addDecision = (text: string, type: 'initial' | 'interim' | 'final') => dispatch({ type: 'ADD_DECISION', payload: { text, type } });
+  const addDecision = (text: string, type: 'initial' | 'interim' | 'final', structured?: any) => dispatch({ type: 'ADD_DECISION', payload: { text, type, structured } });
   const addArgument = (side: 'plaintiff' | 'defense', text: string, type: 'initial' | 'counter') => dispatch({ type: 'ADD_ARGUMENT', payload: { side, text, type } });
   const surrenderCase = (side: 'plaintiff' | 'defense') => dispatch({ type: 'SURRENDER_CASE', payload: side });
   const closeCase = (reason: 'ai_closed' | 'completed') => dispatch({ type: 'CLOSE_CASE', payload: { reason } });

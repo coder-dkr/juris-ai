@@ -1,208 +1,346 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useApp } from '../hooks/useApp';
-import { apiService } from '../services/api';
-import { SidePanel, MainPanel, ErrorNotification } from '.';
+import { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Gavel,
+  Shield,
+  Activity,
+  ChevronLeft,
+  Terminal,
+  Scale,
+  Clock,
+  LayoutDashboard,
+} from "lucide-react";
+import { useApp } from "../hooks/useApp";
+import { apiService } from "../services/api";
+import { SidePanel, MainPanel, ErrorNotification } from ".";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface CourtRoomProps {
   caseId: string;
 }
 
 export const CourtRoom: React.FC<CourtRoomProps> = ({ caseId }) => {
-  const { state, setCaseId, setVerdict, setLoading, setError, clearError } = useApp();
+  const { state, setCaseId, setVerdict, setLoading, setError, clearError, addDecision } =
+    useApp();
   const { verdict, loading, error } = state;
-  const [caseTitle, setCaseTitle] = useState<string>('');
-  const [caseType, setCaseType] = useState<string>('');
+  const [caseTitle, setCaseTitle] = useState<string>("");
+  const [caseType, setCaseType] = useState<string>("");
   const [caseLoading, setCaseLoading] = useState<boolean>(true);
   const [caseNotFound, setCaseNotFound] = useState<boolean>(false);
 
   const fetchCaseDetails = useCallback(async () => {
     if (!caseId) return;
-    
+
     try {
       setCaseLoading(true);
       setCaseNotFound(false);
       clearError();
-      
+
       const caseData = await apiService.getCase(caseId);
       if (caseData) {
-        setCaseTitle(caseData.title || 'Untitled Case');
-        setCaseType(caseData.caseType || '');
+        setCaseTitle(caseData.title || "Untitled Case");
+        setCaseType(caseData.caseType || "");
       } else {
         setCaseNotFound(true);
       }
     } catch (err) {
-      console.error('Failed to fetch case details:', err);
+      console.error("Failed to fetch case details:", err);
       setCaseNotFound(true);
     } finally {
       setCaseLoading(false);
     }
-  }, [caseId, clearError]);
+  }, [caseId]);
 
   useEffect(() => {
-    // Set the case ID in context
     setCaseId(caseId);
-    
-    // Fetch case details only once
     fetchCaseDetails();
 
-    const es = new EventSource('/api/events');
+    // Load case history with verdicts
+    const loadCaseHistory = async () => {
+      if (!caseId) return;
+      
+      try {
+        const caseData = await apiService.getCase(caseId);
+        
+        // Hydrate decisions from verdicts
+        if (caseData.verdicts && caseData.verdicts.length > 0) {
+          caseData.verdicts.forEach((verdict: any) => {
+            const type = verdict.verdictType || 'initial';
+            addDecision(verdict.text, type as 'initial' | 'interim' | 'final', verdict.structured);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load case history:', err);
+      }
+    };
+    
+    loadCaseHistory();
+
+    const serverUrl =
+      import.meta.env.VITE_SERVER_URL || "http://localhost:5100/api";
+    const eventUrl = `${serverUrl.replace("/api", "")}/api/events`;
+    console.log(eventUrl);
+
+    const es = new EventSource(eventUrl);
     es.onmessage = (ev) => {
       try {
         const d = JSON.parse(ev.data);
-        if (d.type === 'verdict') setVerdict(d.text);
+        if (d.type === 'verdict') {
+          setVerdict(d.text);
+          // Add to decisions history
+          const verdictType = d.verdictType || 'initial';
+          addDecision(d.text, verdictType, d.structured);
+        } else if (d.type === 'surrender') {
+          // Handle surrender as final verdict
+          const verdictType = d.verdictType || 'final';
+          if (d.text) {
+            setVerdict(d.text);
+            addDecision(d.text, verdictType, d.structured);
+          }
+        }
       } catch (err) {
         console.warn('Invalid SSE data', err);
       }
     };
-    
+
     es.onerror = (err) => {
       console.error('SSE connection error:', err);
     };
-    
+
     return () => es.close();
-  }, []);
+  }, [caseId]);
 
   async function requestVerdict() {
     if (!caseId) {
-      setError('No case selected');
+      setError("No case selected");
       return;
     }
-    
+
     try {
       setLoading(true);
       clearError();
-      
+
       const result = await apiService.requestVerdict(caseId);
       setVerdict(result.text || JSON.stringify(result));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate verdict');
+      setError(
+        err instanceof Error ? err.message : "Failed to generate verdict"
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  // Show loading state while fetching case details
   if (caseLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 mx-auto border-4 border-purple-600/30 border-t-purple-600 rounded-full animate-spin"></div>
-          <h2 className="text-xl font-semibold text-white">Loading Case Details...</h2>
-          <p className="text-gray-400">Case ID: {caseId}</p>
+      <div className="min-h-screen bg-legal-obsidian flex items-center justify-center">
+        <div className="text-center relative">
+          <div className="absolute inset-0 bg-cyan-500/20 blur-3xl rounded-full" />
+          <div className="relative z-10 space-y-6">
+            <div className="w-20 h-20 mx-auto glass-panel rounded-2xl flex items-center justify-center border-cyan-500/30">
+              <Activity className="w-10 h-10 text-cyan-400 animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-white tracking-widest uppercase">
+                Initializing Registry
+              </h2>
+              <p className="text-cyan-500/60 font-mono text-xs">
+                Awaiting case link: {caseId}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Show case not found error
   if (caseNotFound) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center space-y-6 max-w-md mx-auto p-8">
-          <div className="w-20 h-20 mx-auto bg-red-600/20 rounded-full flex items-center justify-center">
-            <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 18.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
+      <div className="min-h-screen bg-legal-obsidian flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass-panel max-w-md w-full p-10 rounded-3xl text-center border-red-500/20"
+        >
+          <div className="w-20 h-20 mx-auto bg-red-500/10 rounded-2xl flex items-center justify-center mb-8 border border-red-500/20">
+            <Shield className="w-10 h-10 text-red-500" />
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-2">Case Not Found</h2>
-            <p className="text-gray-400 mb-1">The case with ID <span className="font-mono text-gray-300">{caseId}</span> could not be found.</p>
-            <p className="text-sm text-gray-500">Please check the case ID and try again.</p>
-          </div>
+          <h2 className="text-3xl font-bold text-white mb-4 tracking-tight">
+            Access Denied
+          </h2>
+          <p className="text-slate-400 mb-8 leading-relaxed">
+            Case record{" "}
+            <span className="font-mono text-red-400 bg-red-500/5 px-2 py-1 rounded">
+              {caseId}
+            </span>{" "}
+            not found in the central registry.
+          </p>
           <button
             onClick={() => window.history.back()}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
+            className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold border border-white/10 transition-all flex items-center justify-center gap-3"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Go Back
+            <ChevronLeft className="w-5 h-5" />
+            Return to Terminal
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-legal-obsidian text-slate-200">
       <ErrorNotification error={error} onClear={clearError} />
-      
-      {/* Court Header */}
-      <div className="bg-gray-950/95 backdrop-blur-sm border-b border-gray-800/50 px-4 py-4 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-linear-to-r from-purple-600 to-purple-700 flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-3m-3 3l-3-3" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-white">{caseTitle}</h1>
-                <p className="text-xs text-gray-400">Case ID: {caseId} {caseType && `• ${caseType.charAt(0).toUpperCase() + caseType.slice(1)} Case`}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-green-600/20 border border-green-600/30 rounded-lg">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-green-300">AI Judge Jurix Online</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Desktop Layout */}
-      <div className="hidden lg:grid lg:grid-cols-[320px_1fr_320px] h-[calc(100vh-80px)]">
-        <div className="border-r border-gray-800/50">
-          <SidePanel 
-            side="plaintiff" 
-            caseId={caseId} 
-            onUploaded={setCaseId} 
-          />
-        </div>
-        
-        <MainPanel 
-          verdict={verdict}
-          loading={loading}
-          caseId={caseId}
-          onRequestVerdict={requestVerdict}
-        />
-        
-        <div className="border-l border-gray-800/50">
-          <SidePanel 
-            side="defense" 
-            caseId={caseId} 
-            onUploaded={setCaseId} 
-          />
-        </div>
-      </div>
 
-      {/* Mobile/Tablet Layout */}
-      <div className="lg:hidden">
-        <div className="px-4 py-6">
-          <MainPanel 
-            verdict={verdict}
-            loading={loading}
-            caseId={caseId}
-            onRequestVerdict={requestVerdict}
-          />
+      {/* Courtroom Header */}
+      <header className="sticky top-0 z-50 glass-panel border-b border-white/5 px-6 py-4">
+        <div className="max-w-[1800px] mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => window.history.back()}
+              className="p-2 hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-white"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <div className="h-10 w-[1px] bg-white/10" />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-3">
+                <Gavel className="w-5 h-5 text-cyan-400" />
+                <h1 className="text-xl font-bold tracking-tight text-white uppercase">
+                  {caseTitle}
+                </h1>
+              </div>
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-[10px] font-mono tracking-[0.2em] text-cyan-500/80 uppercase">
+                  Registry: {caseId.slice(0, 12)}...
+                </span>
+                <span className="w-1 h-1 bg-slate-700 rounded-full" />
+                <span className="text-[10px] font-mono tracking-[0.2em] text-slate-500 uppercase">
+                  Type: {caseType || "GENERAL"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-4">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
+                  System Status
+                </span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+                  <span className="text-xs font-bold text-cyan-100 uppercase tracking-widest">
+                    Jurix Core Active
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="h-10 w-[1px] bg-white/10" />
+            <div className="w-12 h-12 glass-card rounded-xl flex items-center justify-center border-cyan-500/30">
+              <Activity className="w-6 h-6 text-cyan-400" />
+            </div>
+          </div>
         </div>
-        
-        <div className="grid md:grid-cols-2 gap-6 p-4">
-          <SidePanel 
-            side="plaintiff" 
-            caseId={caseId} 
-            onUploaded={setCaseId} 
-          />
-          <SidePanel 
-            side="defense" 
-            caseId={caseId} 
-            onUploaded={setCaseId} 
-          />
+      </header>
+
+      {/* Main Grid Layout */}
+      <main className="max-w-[1800px] mx-auto p-6">
+        <div className="grid lg:grid-cols-[380px_1fr_380px] gap-6 items-stretch min-h-[calc(100vh-140px)]">
+          {/* Plaintiff Panel */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col"
+          >
+            <div className="flex items-center gap-2 mb-4 ml-2">
+              <Scale className="w-4 h-4 text-cyan-400" />
+              <span className="text-xs font-mono uppercase tracking-[0.2em] text-slate-500">
+                Plaintiff Division
+              </span>
+            </div>
+            <div className="flex-grow glass-panel rounded-3xl overflow-hidden border-white/5">
+              <SidePanel
+                side="plaintiff"
+                caseId={caseId}
+                onUploaded={setCaseId}
+              />
+            </div>
+          </motion.div>
+
+          {/* Central Verdict Area */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-4 px-2">
+              <div className="flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4 text-cyan-400" />
+                <span className="text-xs font-mono uppercase tracking-[0.2em] text-slate-500">
+                  Judicial Analysis Terminal
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-slate-500" />
+                <span className="text-[10px] font-mono text-slate-500">
+                  REAL-TIME FEED
+                </span>
+              </div>
+            </div>
+            <div className="flex-grow glass-panel rounded-3xl overflow-hidden border-white/5 flex flex-col">
+              <MainPanel
+                verdict={verdict}
+                loading={loading}
+                caseId={caseId}
+                onRequestVerdict={requestVerdict}
+              />
+            </div>
+          </motion.div>
+
+          {/* Defense Panel */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col"
+          >
+            <div className="flex items-center gap-2 mb-4 ml-2">
+              <Shield className="w-4 h-4 text-amber-500" />
+              <span className="text-xs font-mono uppercase tracking-[0.2em] text-slate-500">
+                Defense Division
+              </span>
+            </div>
+            <div className="flex-grow glass-panel rounded-3xl overflow-hidden border-white/5">
+              <SidePanel
+                side="defense"
+                caseId={caseId}
+                onUploaded={setCaseId}
+              />
+            </div>
+          </motion.div>
         </div>
-      </div>
+      </main>
+
+      {/* Footer Interface */}
+      <footer className="px-6 py-4 border-t border-white/5 bg-black/20">
+        <div className="max-w-[1800px] mx-auto flex items-center justify-between text-[10px] font-mono text-slate-600 tracking-[0.2em] uppercase">
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+              <span>Network: Encrypted</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Terminal className="w-3 h-3" />
+              <span>Protocol: JURIX_v4.2.1</span>
+            </div>
+          </div>
+          <div>© 2026 DEPARTMENT OF ALGORITHMIC JUSTICE</div>
+        </div>
+      </footer>
     </div>
   );
 };

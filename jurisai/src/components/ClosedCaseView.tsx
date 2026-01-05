@@ -1,6 +1,28 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { motion } from 'framer-motion';
+import { 
+  ChevronLeft, 
+  ShieldAlert, 
+  CheckCircle2, 
+  FileText, 
+  Activity,
+  Calendar,
+  Layers,
+  Award,
+  Terminal,
+  History
+} from 'lucide-react';
+import { InitialVerdictView } from './InitialVerdictView';
+import { InterimAnalysisView } from './InterimAnalysisView';
+import { FinalJudgmentView } from './FinalJudgmentView';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface CaseData {
   _id: string;
@@ -21,6 +43,23 @@ interface CaseData {
     _id: string;
     text: string;
     createdAt: string;
+    verdictType?: 'initial' | 'interim' | 'final';
+    structured?: {
+      summary?: string;
+      plaintiffStrength?: number;
+      defenseStrength?: number;
+      keyPoints?: string[];
+      argumentReview?: {
+        newPoints?: string[];
+        stanceChange?: string;
+        overruledPoints?: string[];
+      };
+      ruling?: {
+        decision?: string;
+        confidence?: number;
+        recommendation?: 'continue' | 'settle' | 'final';
+      };
+    };
     raw?: {
       surrenderedBy?: string;
       type?: string;
@@ -44,218 +83,173 @@ export const ClosedCaseView: React.FC<ClosedCaseViewProps> = ({
   const finalVerdict = caseData.verdicts[caseData.verdicts.length - 1];
   const isSurrendered = finalVerdict?.raw?.type === 'surrender';
   const surrenderedBy = finalVerdict?.raw?.surrenderedBy;
-
-  const getCaseStatus = () => {
-    if (isSurrendered) {
-      return {
-        status: 'Surrendered',
-        color: 'red',
-        icon: (
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 18.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-        )
-      };
-    }
-    return {
-      status: 'Completed',
-      color: 'green',
-      icon: (
-        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      )
-    };
-  };
-
-  const caseStatus = getCaseStatus();
+  
+  // Transform verdicts into decision format for our components
+  const decisions = caseData.verdicts.map((verdict, index) => ({
+    id: verdict._id,
+    text: verdict.text,
+    timestamp: new Date(verdict.createdAt),
+    type: (verdict.verdictType || (index === 0 ? 'initial' : index === caseData.verdicts.length - 1 ? 'final' : 'interim')) as 'initial' | 'interim' | 'final',
+    structured: verdict.structured
+  }));
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-legal-obsidian text-slate-200">
+      <div className="fixed inset-0 bg-grid opacity-10 pointer-events-none" />
+      
       {/* Header */}
-      <div className="bg-gray-950/95 backdrop-blur-sm border-b border-gray-800/50 px-4 py-4 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-50 glass-panel border-b border-white/5 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-6">
             <button
               onClick={onBackToHome}
-              className="flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white transition-colors"
+              className="p-2 hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-white group"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Home
+              <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
             </button>
-            <div className="h-6 w-px bg-gray-700"></div>
-            <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                caseStatus.color === 'red' 
-                  ? 'bg-linear-to-r from-red-600 to-red-700' 
-                  : 'bg-linear-to-r from-green-600 to-green-700'
-              }`}>
-                {caseStatus.icon}
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-white">Case {caseStatus.status}</h1>
-                <p className="text-xs text-gray-400">Case ID: {caseId}</p>
-              </div>
+            <div className="h-10 w-px bg-white/10" />
+            <div className="flex flex-col">
+              <h1 className="text-xl font-bold tracking-tight text-white uppercase flex items-center gap-2">
+                <FileText className="w-5 h-5 text-cyan-400" />
+                Case Archive
+              </h1>
+              <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Registry ID: {caseId}</span>
             </div>
           </div>
           
-          <div className={`flex items-center gap-2 px-3 py-1 border rounded-lg ${
-            caseStatus.color === 'red'
-              ? 'bg-red-600/20 border-red-600/30'
-              : 'bg-green-600/20 border-green-600/30'
-          }`}>
-            <div className={`w-2 h-2 rounded-full ${
-              caseStatus.color === 'red' ? 'bg-red-400' : 'bg-green-400'
-            }`}></div>
-            <span className={`text-sm font-medium ${
-              caseStatus.color === 'red' ? 'text-red-300' : 'text-green-300'
-            }`}>
-              {caseStatus.status}
-            </span>
+          <div className={cn(
+            "flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-widest",
+            isSurrendered ? "bg-red-500/10 border-red-500/20 text-red-400" : "bg-green-500/10 border-green-500/20 text-green-400"
+          )}>
+            <div className={cn("w-2 h-2 rounded-full", isSurrendered ? "bg-red-500 animate-pulse" : "bg-green-500")} />
+            {isSurrendered ? 'Case Surrendered' : 'Case Resolved'}
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-6xl mx-auto p-6 space-y-8">
-        {/* Case Summary */}
-        <div className="bg-gray-900/80 border border-gray-700/50 backdrop-blur-sm rounded-xl overflow-hidden">
-          <div className="bg-gray-800/50 border-b border-gray-700/50 px-6 py-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-3">
-              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2M7 21h2m-2 0H3" />
-              </svg>
-              Case Summary
-            </h2>
-          </div>
-          <div className="p-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-3">{caseData.title}</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Case Type:</span>
-                    <span className="text-gray-300 capitalize">{caseData.caseType || 'General'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Documents Filed:</span>
-                    <span className="text-gray-300">{caseData.documents.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Arguments Presented:</span>
-                    <span className="text-gray-300">{caseData.argumentCount}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">AI Decisions:</span>
-                    <span className="text-gray-300">{caseData.verdictCount}</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-gray-300 mb-3">Case Timeline</h4>
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                    <span className="text-gray-400">Case Created</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span className="text-gray-400">Arguments Submitted</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      caseStatus.color === 'red' ? 'bg-red-400' : 'bg-green-400'
-                    }`}></div>
-                    <span className="text-gray-400">
-                      Case {isSurrendered ? `Surrendered by ${surrenderedBy}` : 'Completed'}
-                    </span>
-                  </div>
-                </div>
-              </div>
+      <main className="max-w-5xl mx-auto p-8 space-y-12 relative z-10">
+        
+        {/* Case Dossier */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-panel rounded-3xl overflow-hidden border-white/5"
+        >
+          <div className="bg-white/5 px-8 py-6 border-b border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+               <div className="w-12 h-12 glass-card rounded-2xl flex items-center justify-center border-white/10">
+                  <Award className="w-6 h-6 text-cyan-400" />
+               </div>
+               <div>
+                  <h2 className="text-2xl font-bold text-white tracking-tight">{caseData.title}</h2>
+                  <p className="text-xs font-mono text-slate-500 uppercase tracking-widest">{caseData.caseType || 'General Jurisdiction'}</p>
+               </div>
+            </div>
+            <div className="text-right">
+               <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block mb-1">Archive Entry</span>
+               <span className="text-sm font-bold text-slate-300">{new Date(caseData.verdicts[0]?.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
-        </div>
-
-        {/* Final Verdict */}
-        <div className="bg-gray-900/80 border border-gray-700/50 backdrop-blur-sm rounded-xl overflow-hidden">
-          <div className="bg-gray-800/50 border-b border-gray-700/50 px-6 py-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-3">
-              <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              Final Verdict
-              <div className={`ml-auto text-xs px-2 py-1 rounded-full ${
-                isSurrendered
-                  ? 'bg-red-600/20 text-red-300'
-                  : 'bg-green-600/20 text-green-300'
-              }`}>
-                {isSurrendered ? 'Surrendered' : 'Completed'}
-              </div>
-            </h2>
+          
+          <div className="p-8 grid md:grid-cols-3 gap-8">
+            <StatsCard label="Arguments" value={caseData.argumentCount} icon={<Activity className="w-4 h-4 text-cyan-400" />} />
+            <StatsCard label="Documents" value={caseData.documents.length} icon={<Layers className="w-4 h-4 text-amber-500" />} />
+            <StatsCard label="Analyses" value={caseData.verdictCount} icon={<Terminal className="w-4 h-4 text-slate-400" />} />
           </div>
-          <div className="p-6">
-            <div className="bg-black/40 border border-gray-700/30 rounded-lg p-6">
-              <div className="flex items-start justify-between mb-4">
+        </motion.div>
+
+        {/* Resolution History */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 px-2">
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+               <History className="w-4 h-4 text-cyan-400" />
+            </div>
+            <h3 className="text-xs font-mono uppercase tracking-[0.2em] text-slate-500">
+              {decisions.length > 1 ? 'Complete Judicial Log' : 'Neural Resolution'}
+            </h3>
+          </div>
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative"
+          >
+            {isSurrendered && (
+              <div className="mb-6 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-4">
+                <ShieldAlert className="w-6 h-6 text-red-500" />
                 <div>
-                  <h3 className="text-lg font-semibold text-white mb-1">AI Judge Jurix</h3>
-                  <p className="text-sm text-gray-400">Final Decision</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-500">
-                    {new Date(finalVerdict?.createdAt).toLocaleString()}
-                  </p>
+                  <h4 className="text-sm font-bold text-red-200 uppercase tracking-widest">Surrender Protocol Initiated</h4>
+                  <p className="text-xs text-red-400/80">Proceedings terminated by the {surrenderedBy} division.</p>
                 </div>
               </div>
-              <div className="prose prose-invert prose-sm max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {finalVerdict?.text || 'No final verdict available.'}
-                </ReactMarkdown>
-              </div>
+            )}
+            
+            <div className="space-y-6">
+              {decisions.map((decision, index) => {
+                const previousDecision = index > 0 ? decisions[index - 1] : null;
+                
+                return (
+                  <React.Fragment key={decision.id}>
+                    {/* Connector Line */}
+                    {index !== decisions.length - 1 && (
+                      <div className="relative">
+                        <div className="absolute left-6 top-12 h-6 w-px bg-gradient-to-b from-slate-700 to-transparent" />
+                      </div>
+                    )}
+                    
+                    {decision.type === 'initial' && (
+                      <InitialVerdictView decision={decision} index={index} />
+                    )}
+                    {decision.type === 'interim' && (
+                      <InterimAnalysisView 
+                        decision={decision} 
+                        previousDecision={previousDecision}
+                        index={index} 
+                      />
+                    )}
+                    {decision.type === 'final' && (
+                      <FinalJudgmentView 
+                        decision={decision} 
+                        allDecisions={decisions}
+                        index={index} 
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </div>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Case History */}
-        {caseData.verdicts.length > 1 && (
-          <div className="bg-gray-900/80 border border-gray-700/50 backdrop-blur-sm rounded-xl overflow-hidden">
-            <div className="bg-gray-800/50 border-b border-gray-700/50 px-6 py-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Decision History
-              </h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {caseData.verdicts.slice(0, -1).reverse().map((verdict, index) => (
-                  <div key={verdict._id} className="border-l-4 border-purple-600/50 pl-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-medium text-purple-300">
-                        Decision #{caseData.verdicts.length - index - 1}
-                      </h4>
-                      <span className="text-xs text-gray-500">
-                        {new Date(verdict.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="bg-gray-800/30 rounded-lg p-4">
-                      <div className="prose prose-invert prose-sm max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {verdict.text.length > 300 
-                            ? verdict.text.substring(0, 300) + '...'
-                            : verdict.text
-                          }
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+        {/* Return Button */}
+        <div className="pt-12 flex justify-center">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onBackToHome}
+            className="px-12 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold border border-white/10 transition-all flex items-center gap-3 uppercase tracking-widest text-sm"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Return to Terminal
+          </motion.button>
+        </div>
+      </main>
+
+      <footer className="mt-20 p-8 border-t border-white/5 text-center">
+        <p className="text-[10px] font-mono text-slate-600 uppercase tracking-[0.3em]">© 2026 JURISAI // DEPARTMENT OF ALGORITHMIC JUSTICE</p>
+      </footer>
     </div>
   );
 };
+
+const StatsCard = ({ label, value, icon }: { label: string, value: number, icon: React.ReactNode }) => (
+  <div className="bg-black/20 rounded-2xl p-6 border border-white/5 flex items-center gap-6">
+    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
+      {icon}
+    </div>
+    <div>
+      <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">{label}</div>
+      <div className="text-3xl font-bold text-white tracking-tighter">{value}</div>
+    </div>
+  </div>
+);

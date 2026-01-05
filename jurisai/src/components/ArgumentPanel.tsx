@@ -1,6 +1,22 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Send, 
+  History, 
+  MessageSquare, 
+  ShieldAlert, 
+  ChevronRight,
+  Zap,
+  Lock
+} from 'lucide-react';
 import { useApp } from '../hooks/useApp';
 import { apiService } from '../services/api';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface ArgumentPanelProps {
   caseId?: string | null;
@@ -19,7 +35,6 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
   const counterArguments = sideArguments.filter(arg => arg.type === 'counter');
   const counterArgumentsRemaining = Math.max(0, 5 - counterArguments.length);
   const canSubmitCounterArgument = counterArgumentsRemaining > 0;
-  const latestDecision = decisions[decisions.length - 1];
 
   async function submitArg() {
     if (!caseId) {
@@ -42,14 +57,9 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
     try {
       setLoading(true);
       clearError();
-      
-      // Call API to submit argument
       await apiService.submitArgument(caseId, side, text);
-      
-      // Add to local state
       addArgument(side as 'plaintiff' | 'defense', text, argumentType);
-      
-      setText(''); // Clear the text area after successful submission
+      setText('');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to submit argument');
     } finally {
@@ -61,20 +71,15 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
     if (!caseId) return;
     
     const confirmSurrender = window.confirm(
-      `Are you sure you want to surrender this case on behalf of the ${side}? This action cannot be undone.`
+      `Confirm surrender on behalf of the ${side}? This protocol is irreversible.`
     );
     
     if (confirmSurrender) {
       try {
         setLoading(true);
         clearError();
-        
-        // Call API to surrender case
         await apiService.surrenderCase(caseId, side);
-        
-        // Update local state
         surrenderCase(side as 'plaintiff' | 'defense');
-        
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Failed to surrender case');
       } finally {
@@ -83,163 +88,95 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
     }
   }
 
-  const getTitle = () => {
-    if (isCaseClosed) {
-      if (caseStatus === 'surrendered') {
-        return `${side} Arguments (Surrendered)`;
-      }
-      return `${side} Arguments (Case Closed)`;
-    }
-    return `${side} Arguments`;
+  const getButtonConfig = () => {
+    if (isCaseClosed) return { text: 'Registry Locked', icon: <Lock className="w-4 h-4" />, color: 'bg-slate-800' };
+    if (!hasInitialArgument) return { text: 'Initialize Argument', icon: <Zap className="w-4 h-4" />, color: 'bg-cyan-600' };
+    if (!canSubmitCounterArgument) return { text: 'Buffer Full', icon: <ShieldAlert className="w-4 h-4" />, color: 'bg-red-900/40' };
+    return { text: `Submit Counter (${counterArgumentsRemaining})`, icon: <Send className="w-4 h-4" />, color: 'bg-cyan-600' };
   };
 
-  const getPlaceholder = () => {
-    if (!hasInitialArgument) {
-      return `Present your initial ${side} arguments here...`;
-    }
-    if (!canSubmitCounterArgument) {
-      return 'Counter-argument limit reached (5 maximum)';
-    }
-    return `Present counter-arguments or additional evidence... (${counterArgumentsRemaining} remaining)`;
-  };
-
-  const getButtonText = () => {
-    if (isCaseClosed) return 'Case Closed';
-    if (!hasInitialArgument) return 'Submit Initial Argument';
-    if (!canSubmitCounterArgument) return 'Argument Limit Reached';
-    return `Submit Counter-Argument (${counterArgumentsRemaining} left)`;
-  };
+  const btn = getButtonConfig();
 
   return (
-    <div className="bg-gray-900/50 border border-gray-700/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-xl mb-4 hover:shadow-2xl hover:border-gray-600/50 transition-all duration-300">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-            isCaseClosed
-              ? 'bg-linear-to-r from-gray-600 to-gray-700'
-              : hasInitialArgument
-              ? 'bg-linear-to-r from-orange-600 to-orange-700' 
-              : 'bg-linear-to-r from-blue-600 to-blue-700'
-          }`}>
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {isCaseClosed ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              ) : hasInitialArgument ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              )}
-            </svg>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-100 capitalize">
-            {getTitle()}
-          </h3>
-        </div>
-        
-        {isCaseActive && (
-          <button
-            onClick={handleSurrender}
-            className="text-xs px-3 py-1 bg-red-600/20 text-red-300 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-colors"
-          >
-            Surrender
-          </button>
-        )}
-      </div>
-
-      {/* Show latest AI decision if available */}
-      {latestDecision && (
-        <div className="mb-4 p-4 bg-gray-800/40 border border-gray-700/30 rounded-lg">
-          <h4 className="text-sm font-medium text-amber-300 mb-2">
-            Latest AI {latestDecision.type === 'final' ? 'Final' : 'Interim'} Decision:
-          </h4>
-          <p className="text-sm text-gray-300 leading-relaxed">{latestDecision.text}</p>
-          <div className="text-xs text-gray-500 mt-2">
-            {latestDecision.timestamp.toLocaleString()}
-          </div>
-        </div>
-      )}
-
-      {/* Show counter-argument limit status */}
-      {hasInitialArgument && (
-        <div className="mb-4 p-3 bg-gray-800/30 border border-gray-700/20 rounded-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-300">Counter-Arguments</span>
-            <div className="flex items-center gap-2">
-              <div className={`text-xs px-2 py-1 rounded-full ${
-                counterArgumentsRemaining > 2 
-                  ? 'bg-green-600/20 text-green-300' 
-                  : counterArgumentsRemaining > 0 
-                  ? 'bg-amber-600/20 text-amber-300'
-                  : 'bg-red-600/20 text-red-300'
-              }`}>
-                {counterArguments.length}/5 Used
-              </div>
-              <span className="text-xs text-gray-500">
-                {counterArgumentsRemaining} remaining
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Show argument history */}
+    <div className="space-y-6">
+      {/* History Feed */}
       {sideArguments.length > 0 && (
-        <div className="mb-4">
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Argument History:</h4>
-          <div className="space-y-2">
-            {sideArguments.map((arg) => (
-              <div key={arg.id} className="p-3 bg-gray-800/30 border border-gray-700/20 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    arg.type === 'initial' 
-                      ? 'bg-blue-600/20 text-blue-300' 
-                      : 'bg-orange-600/20 text-orange-300'
-                  }`}>
-                    {arg.type === 'initial' ? 'Initial' : 'Counter'}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <History className="w-3 h-3 text-slate-500" />
+            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500">Local Archive</span>
+          </div>
+          <div className="space-y-3">
+            {sideArguments.map((arg, idx) => (
+              <motion.div 
+                key={arg.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="p-4 glass-card rounded-2xl space-y-2 group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className={cn(
+                    "text-[8px] font-mono px-1.5 py-0.5 rounded border uppercase tracking-widest",
+                    arg.type === 'initial' ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-400" : "bg-amber-500/10 border-amber-500/20 text-amber-500"
+                  )}>
+                    {arg.type}
                   </span>
-                  <span className="text-xs text-gray-500">{arg.timestamp.toLocaleString()}</span>
+                  <span className="text-[8px] font-mono text-slate-600 group-hover:text-slate-400 transition-colors">
+                    {new Date(arg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
-                <p className="text-sm text-gray-400 leading-relaxed">{arg.text}</p>
-              </div>
+                <p className="text-xs text-slate-400 leading-relaxed italic line-clamp-3 group-hover:line-clamp-none transition-all">
+                  "{arg.text}"
+                </p>
+              </motion.div>
             ))}
           </div>
         </div>
       )}
-      
+
+      {/* Input Area */}
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-200 mb-3">
-            {hasInitialArgument ? 'Submit counter-arguments' : 'Present your initial argument'}
-          </label>
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-cyan-500/10 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
           <textarea 
             value={text} 
             onChange={e => setText(e.target.value)} 
-            rows={6} 
-            className="w-full px-4 py-4 bg-gray-800/70 border border-gray-600/50 rounded-lg text-sm text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none transition-all"
-            placeholder={getPlaceholder()}
+            rows={5} 
+            className="w-full relative p-4 bg-black/40 border border-white/5 rounded-2xl text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-cyan-500/30 transition-all resize-none font-sans"
+            placeholder={isCaseClosed ? "Case record finalized." : "Input legal arguments for judicial processing..."}
             disabled={isCaseClosed || (hasInitialArgument && !canSubmitCounterArgument)}
           />
-          <p className="text-xs text-gray-400 mt-3 flex items-center gap-2">
-            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-            {hasInitialArgument ? 'Challenge previous decisions or provide new evidence' : 'Clear, well-reasoned arguments work best'}
-          </p>
         </div>
-        
-        <button 
-          onClick={submitArg} 
-          disabled={!caseId || !text.trim() || isCaseClosed || (hasInitialArgument && !canSubmitCounterArgument)}
-          className={`w-full py-3 px-4 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl ${
-            isCaseClosed
-              ? 'bg-linear-to-r from-gray-600 to-gray-700 text-gray-300'
-              : hasInitialArgument 
-              ? 'bg-linear-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 focus:ring-orange-500/50'
-              : 'bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 focus:ring-green-500/50'
-          } text-white`}
-        >
-          {getButtonText()}
-        </button>
+
+        <div className="flex gap-2">
+          <motion.button 
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={submitArg} 
+            disabled={!caseId || !text.trim() || isCaseClosed || (hasInitialArgument && !canSubmitCounterArgument)}
+            className={cn(
+              "flex-grow py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white flex items-center justify-center gap-2 transition-all shadow-lg",
+              btn.color,
+              "disabled:opacity-40 disabled:grayscale"
+            )}
+          >
+            {btn.icon}
+            {btn.text}
+          </motion.button>
+
+          {isCaseActive && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleSurrender}
+              title="Irreversible Surrender"
+              className="px-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
+            >
+              <ShieldAlert className="w-4 h-4" />
+            </motion.button>
+          )}
+        </div>
       </div>
     </div>
   );

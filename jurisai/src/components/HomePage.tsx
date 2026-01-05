@@ -1,4 +1,23 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Gavel, 
+  Plus, 
+  LogIn, 
+  Shield, 
+  Zap, 
+  Scale, 
+  FileText, 
+  ChevronRight,
+  Activity,
+  Award
+} from 'lucide-react';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface HomePageProps {
   onCreateCase: (caseTitle: string, caseType: string) => void;
@@ -24,273 +43,285 @@ export const HomePage: React.FC<HomePageProps> = ({ onCreateCase, onJoinCase }) 
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-linear-to-br from-purple-900/20 to-blue-900/20"></div>
-      <div className="absolute inset-0 opacity-10" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-      }}></div>
-
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-4xl">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-linear-to-r from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-2xl">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-3m-3 3l-3-3" />
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-5xl lg:text-6xl font-bold text-white mb-2">
-                  Juris<span className="text-blue-400">AI</span>
-                </h1>
-                <div className="flex items-center gap-2 text-gray-400">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium">Powered by AI Judge Jurix</span>
-                </div>
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden">
+      {/* Decorative Elements */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent shadow-[0_0_20px_rgba(34,211,238,0.5)]" />
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="w-full max-w-6xl z-10"
+      >
+        {/* Header Section */}
+        <div className="text-center mb-16 relative">
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="inline-flex items-center gap-4 mb-8"
+          >
+            <div className="relative">
+              <div className="absolute inset-0 bg-cyan-500/20 blur-2xl rounded-full" />
+              <div className="hidden sm:flex w-20 h-20 glass-panel rounded-2xl items-center justify-center border-cyan-500/30 shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+                <Gavel className="w-10 h-10 text-cyan-400" />
               </div>
             </div>
-            
-            <h2 className="text-2xl lg:text-3xl font-semibold text-gray-200 mb-4">
-              AI-Powered Mock Trial System
-            </h2>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
-              Experience realistic legal proceedings with our AI Judge trained on Indian legal system. 
-              Create cases, present arguments, and receive professional judicial analysis.
-            </p>
+            <div className="text-center sm:text-left">
+              <h1 className="text-6xl md:text-7xl font-bold tracking-tighter text-white">
+                JURIS<span className="text-cyan-500">AI</span>
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+                <span className="text-xs font-mono tracking-widest text-cyan-500/80 uppercase">Systems Online // Neural Judge Jurix</span>
+              </div>
+            </div>
+          </motion.div>
+          
+          <h2 className="text-2xl md:text-3xl font-light text-slate-400 max-w-3xl mx-auto leading-relaxed tracking-tight">
+            Next-generation <span className="text-white font-medium">autonomous legal simulation</span> for the modern practitioner.
+          </h2>
+        </div>
+
+        {/* Main Interface */}
+        <div className="grid lg:grid-cols-12 gap-12 items-stretch">
+          
+          {/* Feature Grid */}
+          <div className="lg:col-span-5 flex flex-col justify-center space-y-6">
+            <FeatureItem 
+              icon={<Shield className="w-5 h-5" />}
+              title="Sovereign Analysis"
+              description="Deep-neural processing of constitutional and civil frameworks."
+              delay={0.4}
+            />
+            <FeatureItem 
+              icon={<Activity className="w-5 h-5" />}
+              title="Real-time Litigation"
+              description="High-fidelity simulation of court proceedings and cross-examination."
+              delay={0.5}
+            />
+            <FeatureItem 
+              icon={<Award className="w-5 h-5" />}
+              title="Judicial Integrity"
+              description="Unbiased, data-driven verdicts based on established precedents."
+              delay={0.6}
+            />
           </div>
 
-          {/* Main Content */}
-          <div className="grid lg:grid-cols-2 gap-8 items-start">
-            {/* Left Side - Features */}
-            <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-white mb-6">Why Choose JurisAI?</h3>
-              
-              <div className="space-y-4">
-                <div className="flex items-start gap-4 p-4 bg-gray-900/50 border border-gray-700/50 rounded-xl backdrop-blur-sm">
-                  <div className="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-white mb-2">AI Judge Jurix</h4>
-                    <p className="text-gray-400">Trained on Indian legal system with expertise in constitutional law, civil procedures, and criminal jurisprudence.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 p-4 bg-gray-900/50 border border-gray-700/50 rounded-xl backdrop-blur-sm">
-                  <div className="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-white mb-2">Real Court Simulation</h4>
-                    <p className="text-gray-400">Experience authentic legal proceedings with document uploads, argument presentations, and judicial decisions.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 p-4 bg-gray-900/50 border border-gray-700/50 rounded-xl backdrop-blur-sm">
-                  <div className="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-white mb-2">Dynamic Case Flow</h4>
-                    <p className="text-gray-400">Multiple rounds of arguments, interim decisions, and strategic case management with surrender options.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Side - Case Management */}
-            <div className="bg-gray-900/95 border border-gray-700/50 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden transform hover:scale-[1.01] transition-transform duration-300">
-              <div className="bg-linear-to-r from-gray-800/80 to-gray-800/60 border-b border-gray-700/50 p-6">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 bg-linear-to-br from-amber-500 via-amber-600 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20 transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-3m-3 3l-3-3" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-white bg-linear-to-r from-white to-gray-300 bg-clip-text">Case Management</h3>
-                    <p className="text-sm text-gray-400 font-medium">Start your legal journey</p>
-                  </div>
-                </div>
-                
-                {/* Enhanced Tab Navigation with Sliding Indicator */}
-                <div className="relative bg-gray-800/60 rounded-xl p-1.5 backdrop-blur-sm">
-                  <div 
-                    className={`absolute top-1.5 h-10 bg-linear-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg transition-all duration-500 ease-out transform ${
-                      activeTab === 'create' 
-                        ? 'left-1.5 w-[calc(50%-0.375rem)] translate-x-0' 
-                        : 'left-1.5 w-[calc(50%-0.375rem)] translate-x-full'
-                    }`}
-                  />
-                  <div className="relative flex">
-                    <button
-                      onClick={() => setActiveTab('create')}
-                      className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-300 relative z-10 flex items-center justify-center gap-2 ${
-                        activeTab === 'create'
-                          ? 'text-white shadow-lg'
-                          : 'text-gray-300 hover:text-white hover:bg-gray-700/30'
-                      }`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                      Create New Case
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('join')}
-                      className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-300 relative z-10 flex items-center justify-center gap-2 ${
-                        activeTab === 'join'
-                          ? 'text-white shadow-lg'
-                          : 'text-gray-300 hover:text-white hover:bg-gray-700/30'
-                      }`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                      </svg>
-                      Join Existing
-                    </button>
-                  </div>
-                </div>
+          {/* Action Card */}
+          <div className="lg:col-span-7">
+            <div className="glass-panel rounded-3xl overflow-hidden border-white/5 shadow-2xl flex flex-col h-full">
+              {/* Tabs */}
+              <div className="flex p-2 bg-white/5 border-b border-white/5">
+                <TabButton 
+                  active={activeTab === 'create'} 
+                  onClick={() => setActiveTab('create')}
+                  icon={<Plus className="w-4 h-4" />}
+                  label="Initialize Case"
+                />
+                <TabButton 
+                  active={activeTab === 'join'} 
+                  onClick={() => setActiveTab('join')}
+                  icon={<LogIn className="w-4 h-4" />}
+                  label="Access Registry"
+                />
               </div>
 
-              {/* Animated Content Container */}
-              <div className="p-6 min-h-[400px] relative overflow-hidden">
-                <div className={`transform transition-all duration-500 ease-in-out ${
-                  activeTab === 'create' ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 absolute inset-6'
-                }`}>
-                  <form onSubmit={handleCreateCase} className="space-y-6">
-                    <div className="group">
-                      <label className="block text-sm font-semibold text-gray-200 mb-3 flex items-center gap-2">
-                        <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Case Title
-                      </label>
-                      <input
-                        type="text"
-                        value={caseTitle}
-                        onChange={(e) => setCaseTitle(e.target.value)}
-                        placeholder="Enter case title (e.g., ABC vs XYZ Property Dispute)"
-                        className="w-full px-4 py-3.5 bg-gray-800/70 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-300 hover:bg-gray-800/90 focus:bg-gray-800"
-                        required
-                      />
-                    </div>
-
-                    <div className="group">
-                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-200 mb-3">
-                        <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                        </svg>
-                        Case Type
-                      </label>
-                      <select
-                        value={caseType}
-                        onChange={(e) => setCaseType(e.target.value)}
-                        className="w-full px-4 py-3.5 bg-gray-800/70 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-300 hover:bg-gray-800/90 focus:bg-gray-800 cursor-pointer"
-                      >
-                        <option value="civil">⚖️ Civil Case</option>
-                        <option value="criminal">🚔 Criminal Case</option>
-                        <option value="corporate">🏢 Corporate Law</option>
-                        <option value="constitutional">📜 Constitutional Matter</option>
-                        <option value="family">👨‍👩‍👧‍👦 Family Law</option>
-                        <option value="property">🏠 Property Dispute</option>
-                        <option value="contract">📋 Contract Dispute</option>
-                        <option value="international">🌍 International Law</option>
-                      </select>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full py-4 bg-linear-to-r from-purple-600 via-purple-700 to-blue-600 hover:from-purple-700 hover:via-purple-800 hover:to-blue-700 text-white font-bold rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-purple-500/25 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-3 group"
+              <div className="p-8 flex-grow">
+                <AnimatePresence mode="wait">
+                  {activeTab === 'create' ? (
+                    <motion.form
+                      key="create"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      onSubmit={handleCreateCase}
+                      className="space-y-8"
                     >
-                      <svg className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                      Create Case & Enter Courtroom
-                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  </form>
-                </div>
-
-                <div className={`transform transition-all duration-500 ease-in-out ${
-                  activeTab === 'join' ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 absolute inset-6'
-                }`}>
-                  <form onSubmit={handleJoinCase} className="space-y-6">
-                    <div className="group">
-                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-200 mb-3">
-                        <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                        </svg>
-                        Case ID
-                      </label>
-                      <input
-                        type="text"
-                        value={joinCaseId}
-                        onChange={(e) => setJoinCaseId(e.target.value)}
-                        placeholder="Enter existing case ID (e.g., CASE-1699123456-ABC123)"
-                        className="w-full px-4 py-3.5 bg-gray-800/70 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 hover:bg-gray-800/90 focus:bg-gray-800 font-mono text-sm"
-                        required
-                      />
-                    </div>
-
-                    <div className="bg-linear-to-r from-blue-900/30 to-indigo-900/20 border border-blue-700/40 rounded-xl p-5 backdrop-blur-sm">
-                      <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center shrink-0">
-                          <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-sm text-blue-200 font-bold mb-1 flex items-center gap-2">
-                            Join Active Legal Proceeding
-                            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                          </h4>
-                          <p className="text-xs text-blue-300/80 leading-relaxed">
-                            Enter a valid case ID to participate in ongoing litigation. You can represent either plaintiff or defense counsel in the virtual courtroom.
-                          </p>
+                      <div className="space-y-4">
+                        <label className="text-xs font-mono uppercase tracking-widest text-slate-500 ml-1">Case Designation</label>
+                        <div className="relative group">
+                          <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+                          <input
+                            type="text"
+                            value={caseTitle}
+                            onChange={(e) => setCaseTitle(e.target.value)}
+                            placeholder="CASE TITLE (e.g. ALPHA VS OMEGA)"
+                            className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all font-mono"
+                            required
+                          />
                         </div>
                       </div>
-                    </div>
 
-                    <button
-                      type="submit"
-                      className="w-full py-4 bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/30 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-3 group"
+                      <div className="space-y-4">
+                        <label className="text-xs font-mono uppercase tracking-widest text-slate-500 ml-1">Jurisdiction Type</label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {['civil', 'criminal', 'corporate', 'constitutional', 'family', 'property'].map((type) => (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() => setCaseType(type)}
+                              className={cn(
+                                "py-3 px-4 rounded-xl border text-xs font-mono uppercase tracking-wider transition-all",
+                                caseType === type 
+                                  ? "bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.1)]" 
+                                  : "bg-white/5 border-white/5 text-slate-500 hover:border-white/10 hover:text-slate-300"
+                              )}
+                            >
+                              {type}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(34,211,238,0.2)" }}
+                        whileTap={{ scale: 0.98 }}
+                        type="submit"
+                        className="w-full py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-3 group relative overflow-hidden"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-all" />
+                        <Zap className="w-5 h-5 text-white fill-white" />
+                        <span className="tracking-widest uppercase text-sm">Initiate Proceedings</span>
+                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </motion.button>
+                    </motion.form>
+                  ) : (
+                    <motion.form
+                      key="join"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      onSubmit={handleJoinCase}
+                      className="space-y-8"
                     >
-                      <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                      </svg>
-                      Join Case & Enter Courtroom
-                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  </form>
-                </div>
+                      <div className="space-y-4">
+                        <label className="text-xs font-mono uppercase tracking-widest text-slate-500 ml-1">System Case ID</label>
+                        <div className="relative group">
+                          <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+                          <input
+                            type="text"
+                            value={joinCaseId}
+                            onChange={(e) => setJoinCaseId(e.target.value)}
+                            placeholder="INPUT CASE ID (e.g. ID-101...)"
+                            className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all font-mono"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center shrink-0">
+                            <Scale className="w-5 h-5 text-cyan-400" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-cyan-100 mb-1">Authenticated Access</h4>
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                              Access restricted to authorized legal representatives. System will verify case credentials before granting entry to the virtual courtroom.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(34,211,238,0.2)" }}
+                        whileTap={{ scale: 0.98 }}
+                        type="submit"
+                        className="w-full py-5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl transition-all border border-white/10 flex items-center justify-center gap-3 group"
+                      >
+                        <LogIn className="w-5 h-5 text-cyan-400" />
+                        <span className="tracking-widest uppercase text-sm">Secure Entry</span>
+                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </motion.button>
+                    </motion.form>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>
-
-          {/* Footer */}
-          <div className="text-center mt-12 pt-8 border-t border-gray-800/50">
-            <p className="text-gray-500 text-sm">
-              © 2024 JurisAI - AI-Powered Legal Education Platform
-            </p>
-            <p className="text-gray-600 text-xs mt-1">
-              Trained on Indian Legal System • Mock Trial Simulation • Educational Purpose
-            </p>
-          </div>
         </div>
-      </div>
+
+        {/* Footer */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 1 }}
+          className="mt-20 text-center pt-8 border-t border-white/5"
+        >
+          <div className="flex items-center justify-center gap-8 mb-4">
+             <div className="text-slate-600 text-[10px] font-mono tracking-widest uppercase">Encryption: AES-256</div>
+             <div className="text-slate-600 text-[10px] font-mono tracking-widest uppercase">Protocol: Jurix-V4</div>
+             <div className="text-slate-600 text-[10px] font-mono tracking-widest uppercase">Latency: 14ms</div>
+          </div>
+          <p className="text-slate-500 text-[10px] font-mono tracking-widest uppercase">
+            © 2026 JURISAI // DEPARTMENT OF ALGORITHMIC JUSTICE
+          </p>
+        </motion.div>
+      </motion.div>
+
+      <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
     </div>
   );
 };
+
+interface FeatureItemProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  delay: number;
+}
+
+const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description, delay }) => (
+  <motion.div 
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay, duration: 0.5 }}
+    className="group flex items-start gap-4 p-5 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5"
+  >
+    <div className="w-12 h-12 glass-card rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:border-cyan-500/30 transition-all shadow-lg">
+      <div className="text-cyan-400 group-hover:text-cyan-300 transition-colors">
+        {icon}
+      </div>
+    </div>
+    <div>
+      <h4 className="text-lg font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">{title}</h4>
+      <p className="text-sm text-slate-500 leading-relaxed group-hover:text-slate-400 transition-colors">{description}</p>
+    </div>
+  </motion.div>
+);
+
+interface TabButtonProps {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}
+
+const TabButton: React.FC<TabButtonProps> = ({ active, onClick, icon, label }) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-mono uppercase tracking-widest transition-all relative overflow-hidden",
+      active 
+        ? "text-cyan-400 bg-cyan-500/10" 
+        : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+    )}
+  >
+    {active && (
+      <motion.div 
+        layoutId="tab-active"
+        className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.8)]"
+      />
+    )}
+    <div className={cn("transition-transform duration-300", active && "scale-110")}>
+      {icon}
+    </div>
+    {label}
+  </button>
+);

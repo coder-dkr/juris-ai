@@ -8,3 +8,6 @@ export { MainPanel } from './MainPanel';
 export { HomePage } from './HomePage';
 export { CourtRoom } from './CourtRoom';
 export { ClosedCaseView } from './ClosedCaseView';
+export { InitialVerdictView } from './InitialVerdictView';
+export { InterimAnalysisView } from './InterimAnalysisView';
+export { FinalJudgmentView } from './FinalJudgmentView';

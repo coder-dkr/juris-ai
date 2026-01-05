@@ -15,6 +15,22 @@ export interface CaseState {
     text: string;
     timestamp: Date;
     type: 'initial' | 'interim' | 'final';
+    structured?: {
+      summary?: string;
+      plaintiffStrength?: number;
+      defenseStrength?: number;
+      keyPoints?: string[];
+      argumentReview?: {
+        newPoints?: string[];
+        stanceChange?: string;
+        overruledPoints?: string[];
+      };
+      ruling?: {
+        decision?: string;
+        confidence?: number;
+        recommendation?: 'continue' | 'settle' | 'final';
+      };
+    };
   }>;
   arguments: {
     plaintiff: Array<{
@@ -40,7 +56,7 @@ type ClearErrorAction = { type: 'CLEAR_ERROR' };
 type SetUploadProgressAction = { type: 'SET_UPLOAD_PROGRESS'; payload: number };
 type ResetStateAction = { type: 'RESET_STATE' };
 type SetPhaseAction = { type: 'SET_PHASE'; payload: 'initial' | 'arguments' | 'closed' };
-type AddDecisionAction = { type: 'ADD_DECISION'; payload: { text: string; type: 'initial' | 'interim' | 'final' } };
+type AddDecisionAction = { type: 'ADD_DECISION'; payload: { text: string; type: 'initial' | 'interim' | 'final'; structured?: any } };
 type AddArgumentAction = { type: 'ADD_ARGUMENT'; payload: { side: 'plaintiff' | 'defense'; text: string; type: 'initial' | 'counter' } };
 type SurrenderCaseAction = { type: 'SURRENDER_CASE'; payload: 'plaintiff' | 'defense' };
 type CloseCaseAction = { type: 'CLOSE_CASE'; payload: { reason: 'ai_closed' | 'completed' } };
@@ -71,7 +87,7 @@ export interface AppContextType {
   setUploadProgress: (progress: number) => void;
   resetState: () => void;
   setPhase: (phase: 'initial' | 'arguments' | 'closed') => void;
-  addDecision: (text: string, type: 'initial' | 'interim' | 'final') => void;
+  addDecision: (text: string, type: 'initial' | 'interim' | 'final', structured?: any) => void;
   addArgument: (side: 'plaintiff' | 'defense', text: string, type: 'initial' | 'counter') => void;
   surrenderCase: (side: 'plaintiff' | 'defense') => void;
   closeCase: (reason: 'ai_closed' | 'completed') => void;

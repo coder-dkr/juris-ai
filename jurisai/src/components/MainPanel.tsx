@@ -1,6 +1,21 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Zap, 
+  Terminal, 
+  ShieldCheck, 
+  AlertCircle,
+  Activity,
+  Cpu
+} from 'lucide-react';
 import { VerdictPanel } from './VerdictPanel';
 import { LoadingIndicator } from './LoadingIndicator';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface MainPanelProps {
   verdict: string | null;
@@ -16,47 +31,114 @@ export const MainPanel: React.FC<MainPanelProps> = ({
   onRequestVerdict
 }) => {
   return (
-    <div className="bg-gray-950/50 backdrop-blur-sm p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-start overflow-auto relative min-h-screen border-gray-800/50">
+    <div className="flex-grow flex flex-col relative overflow-hidden bg-slate-950/20 backdrop-blur-sm">
       <LoadingIndicator loading={loading} />
       
-      <div className="mb-8 text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-xl bg-linear-to-r from-purple-600 to-purple-700 flex items-center justify-center shadow-lg">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-3m-3 3l-3-3" />
-            </svg>
+      {/* Dynamic Background Pattern for Verdict Area */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(#22d3ee_1px,transparent_1px)] [background-size:24px_24px]" />
+      </div>
+
+      <div className="flex-grow overflow-auto p-6 md:p-8 custom-scrollbar">
+        <div className="max-w-4xl mx-auto space-y-8">
+          
+          {/* Analysis Status Header */}
+          <div className="flex items-center justify-between border-b border-white/5 pb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 glass-card rounded-2xl flex items-center justify-center border-cyan-500/30">
+                <Cpu className={cn("w-6 h-6", loading ? "text-cyan-400 animate-spin" : "text-cyan-400")} />
+              </div>
+              <div>
+                <h2 className="text-sm font-mono uppercase tracking-widest text-slate-500">Processing Node</h2>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-white tracking-tight">AI JURIX-V4.2</span>
+                  <div className="px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-[10px] font-mono text-cyan-400 uppercase">Neural Linked</div>
+                </div>
+              </div>
+            </div>
+            <div className="text-right hidden sm:block">
+              <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-1">Current Confidence</div>
+              <div className="text-xl font-bold text-white tracking-tighter">98.4%</div>
+            </div>
           </div>
+
+          {/* Verdict Content */}
+          <div className="relative">
+            <VerdictPanel currentVerdict={verdict} loading={loading} />
+          </div>
+
+          {!verdict && !loading && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-20 text-center space-y-6"
+            >
+              <div className="w-20 h-20 rounded-full bg-slate-900 flex items-center justify-center border border-white/5">
+                <Terminal className="w-10 h-10 text-slate-700" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-slate-300">Awaiting Submissions</h3>
+                <p className="text-slate-500 max-w-sm mx-auto text-sm leading-relaxed">
+                  System requires arguments from both Plaintiff and Defense to generate a judicial analysis.
+                </p>
+              </div>
+            </motion.div>
+          )}
         </div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-          Court Verdict
-        </h1>
-        <p className="text-sm text-gray-400">
-          AI-generated judicial decision
-        </p>
       </div>
       
-      <VerdictPanel currentVerdict={verdict} loading={loading} />
-      
-      <div className="mt-6 lg:mt-8 flex flex-col items-center space-y-4 w-full max-w-md">
-        <button 
-          onClick={onRequestVerdict} 
-          disabled={!caseId || loading}
-          className="w-full bg-linear-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 px-6 lg:px-8 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-950 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-purple-600/20"
-        >
-          {loading ? 'Generating...' : 'Generate Verdict'}
-        </button>
-        
-        <div className="w-full bg-gray-900/40 border border-gray-800/50 rounded-xl px-4 py-3 backdrop-blur-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-xs font-medium text-gray-400 mb-1 sm:mb-0">
-              Case ID:
-            </span>
-            <span className="text-sm font-mono text-gray-300 break-all">
-              {caseId || 'No case selected'}
-            </span>
+      {/* Control Bar */}
+      <div className="p-6 border-t border-white/5 bg-black/40 backdrop-blur-md">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-6">
+          <div className="flex-grow w-full md:w-auto">
+            <div className="group relative">
+              <div className="absolute inset-0 bg-cyan-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <motion.button 
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={onRequestVerdict} 
+                disabled={!caseId || loading}
+                className="w-full relative glass-panel bg-cyan-600 hover:bg-cyan-500 py-4 px-8 rounded-2xl text-white font-bold tracking-widest uppercase text-sm flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed group shadow-[0_0_20px_rgba(8,145,178,0.2)]"
+              >
+                {loading ? (
+                  <>
+                    <Activity className="w-5 h-5 animate-spin" />
+                    <span>Processing Analysis...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5 fill-white" />
+                    <span>Generate Judicial Verdict</span>
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </div>
+          
+          <div className="shrink-0 flex items-center gap-4 px-6 py-4 rounded-2xl bg-white/5 border border-white/5 w-full md:w-auto">
+             <ShieldCheck className="w-5 h-5 text-green-500" />
+             <div className="flex flex-col">
+                <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest leading-none mb-1">Registry Lock</span>
+                <span className="text-xs font-mono text-slate-300 uppercase truncate max-w-[120px]">
+                  {caseId?.slice(0, 12) || 'UNASSIGNED'}...
+                </span>
+             </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(34, 211, 238, 0.3);
+        }
+      `}</style>
     </div>
   );
 };
