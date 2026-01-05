@@ -135,14 +135,14 @@ router.get('/case/:caseId', async (req, res) => {
       return res.status(404).json({ error: 'Case not found' });
     }
     
-    const arguments = await Argument.find({ caseId }).sort({ createdAt: 1 }).lean();
+    const argumentss = await Argument.find({ caseId }).sort({ createdAt: 1 }).lean();
     const verdicts = await Verdict.find({ caseId }).sort({ createdAt: 1 }).lean();
     
     res.json({
       ...caseData,
-      arguments,
+      argumentss,
       verdicts,
-      argumentCount: arguments.length,
+      argumentCount: argumentss.length,
       verdictCount: verdicts.length
     });
   } catch (err) {
@@ -208,10 +208,30 @@ router.post('/verdict', async (req, res) => {
       requestType 
     });
 
-    const v = new Verdict({ caseId, text: result.verdictText, raw: result.raw });
+    // Get previous verdict for reference linking
+    const previousVerdict = previousDecisions.length > 0 ? previousDecisions[previousDecisions.length - 1] : null;
+
+    const v = new Verdict({ 
+      caseId, 
+      text: result.verdictText, 
+      verdictType: requestType,
+      structured: result.structured || {},
+      raw: { 
+        ...result.raw,
+        previousDecisionRef: previousVerdict?._id,
+        argumentsConsidered: args.map(a => a._id)
+      }
+    });
     await v.save();
 
-    sendSSE({ type: 'verdict', caseId, verdictId: v._id, text: v.text });
+    sendSSE({ 
+      type: 'verdict', 
+      caseId, 
+      verdictId: v._id, 
+      text: v.text,
+      verdictType: requestType,
+      structured: v.structured
+    });
 
     res.json(v);
   } catch (err) {
@@ -231,7 +251,8 @@ router.post('/surrender', async (req, res) => {
     
     const v = new Verdict({ 
       caseId, 
-      text: surrenderText, 
+      text: surrenderText,
+      verdictType: 'final',
       raw: { 
         surrenderedBy: side, 
         type: 'surrender',
@@ -240,7 +261,7 @@ router.post('/surrender', async (req, res) => {
     });
     await v.save();
 
-    sendSSE({ type: 'surrender', caseId, side, verdictId: v._id });
+    sendSSE({ type: 'surrender', caseId, side, verdictId: v._id, verdictType: 'final', text: surrenderText });
 
     res.json({ message: `Case surrendered by ${side}`, verdict: v });
   } catch (err) {

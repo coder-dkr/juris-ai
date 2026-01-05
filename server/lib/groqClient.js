@@ -68,10 +68,42 @@ function buildLegalPrompt({ caseId, case: caseDoc, arguments: allArgs, previousD
   prompt.push(`\n**ANALYSIS REQUIRED:**`);
   if (requestType === 'initial') {
     prompt.push(`Provide initial legal assessment based on documents and initial arguments.`);
+    prompt.push(`\n**OUTPUT FORMAT - INITIAL VERDICT:**`);
+    prompt.push(`Use comprehensive legal structure with these sections:`);
+    prompt.push(`- **CASE DETAILS & PARTIES**`);
+    prompt.push(`- **FACTS OF THE CASE**`);
+    prompt.push(`- **ISSUES RAISED**`);
+    prompt.push(`- **ARGUMENTS ANALYSIS** (Both sides)`);
+    prompt.push(`- **LEGAL PROVISIONS & PRECEDENTS**`);
+    prompt.push(`- **PRELIMINARY RULING**`);
+    prompt.push(`- **RECOMMENDATION**`);
   } else if (requestType === 'interim') {
-    prompt.push(`Analyze new counter-arguments against previous decision. Determine if previous ruling should be modified, upheld, or if case requires further argument.`);
+    prompt.push(`Analyze new counter-arguments against previous decision. Focus on what changed since last ruling.`);
+    prompt.push(`\n**OUTPUT FORMAT - INTERIM ANALYSIS:**`);
+    prompt.push(`Provide focused analysis of NEW developments:`);
+    prompt.push(`\n### 🔄 ARGUMENT REVIEW`);
+    prompt.push(`- What evidence/arguments are NEW since last decision`);
+    prompt.push(`- Effectiveness of counter-arguments`);
+    prompt.push(`- Impact on previous ruling`);
+    prompt.push(`\n### 📊 POSITION SHIFT ANALYSIS`);
+    prompt.push(`Rate current strength: Plaintiff: X/100, Defense: Y/100`);
+    prompt.push(`Compare with previous decision and explain shifts`);
+    prompt.push(`\n### ⚖️ REVISED ASSESSMENT`);
+    prompt.push(`- Points UPHELD from previous ruling (with reasoning)`);
+    prompt.push(`- Points now OVERRULED or MODIFIED (with reasoning)`);
+    prompt.push(`- NEW legal considerations introduced`);
+    prompt.push(`\n### 💡 JUDICIAL GUIDANCE`);
+    prompt.push(`- Should case continue with more arguments or move to settlement?`);
+    prompt.push(`- What would strengthen each side's position?`);
+    prompt.push(`- Recommendation: Continue/Settle/Final judgment needed`);
   } else {
     prompt.push(`Provide final judgment considering all evidence, arguments, and any previous interim decisions.`);
+    prompt.push(`\n**OUTPUT FORMAT - FINAL JUDGMENT:**`);
+    prompt.push(`Synthesize the complete case history:`);
+    prompt.push(`- **CHRONOLOGICAL SUMMARY** of all arguments and decisions`);
+    prompt.push(`- **EVOLUTION OF LEGAL POSITION** throughout the case`);
+    prompt.push(`- **FINAL RULING** with comprehensive justification`);
+    prompt.push(`- **BINDING ORDER** and final disposition`);
   }
   
   prompt.push(`\nApply Indian legal principles and cite relevant provisions/precedents where applicable.`);
