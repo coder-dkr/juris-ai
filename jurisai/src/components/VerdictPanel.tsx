@@ -13,12 +13,7 @@ import { useApp } from '../hooks/useApp';
 import { InitialVerdictView } from './InitialVerdictView';
 import { InterimAnalysisView } from './InterimAnalysisView';
 import { FinalJudgmentView } from './FinalJudgmentView';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 interface VerdictPanelProps {
   currentVerdict?: string | null;
@@ -91,7 +86,7 @@ export const VerdictPanel: React.FC<VerdictPanelProps> = ({
                   {/* Connector Line */}
                   {index !== decisions.length - 1 && (
                     <div className="relative">
-                      <div className="absolute left-6 top-12 h-4 w-px bg-gradient-to-b from-slate-700 to-transparent" />
+                      <div className="absolute left-6 top-12 h-4 w-px bg-linear-to-b from-slate-700 to-transparent" />
                     </div>
                   )}
                   

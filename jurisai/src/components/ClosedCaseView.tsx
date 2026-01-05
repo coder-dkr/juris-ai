@@ -1,14 +1,10 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { motion } from 'framer-motion';
 import { 
   ChevronLeft, 
   ShieldAlert, 
-  CheckCircle2, 
   FileText, 
   Activity,
-  Calendar,
   Layers,
   Award,
   Terminal,
@@ -17,12 +13,7 @@ import {
 import { InitialVerdictView } from './InitialVerdictView';
 import { InterimAnalysisView } from './InterimAnalysisView';
 import { FinalJudgmentView } from './FinalJudgmentView';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import cn from '../lib/cn';
 
 interface CaseData {
   _id: string;
@@ -193,7 +184,7 @@ export const ClosedCaseView: React.FC<ClosedCaseViewProps> = ({
                     {/* Connector Line */}
                     {index !== decisions.length - 1 && (
                       <div className="relative">
-                        <div className="absolute left-6 top-12 h-6 w-px bg-gradient-to-b from-slate-700 to-transparent" />
+                        <div className="absolute left-6 top-12 h-6 w-px bg-linear-to-b from-slate-700 to-transparent" />
                       </div>
                     )}
                     

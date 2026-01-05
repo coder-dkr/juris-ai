@@ -4,18 +4,14 @@ import {
   Zap, 
   Terminal, 
   ShieldCheck, 
-  AlertCircle,
   Activity,
   Cpu
 } from 'lucide-react';
 import { VerdictPanel } from './VerdictPanel';
 import { LoadingIndicator } from './LoadingIndicator';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import cn from '../lib/cn';
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+
 
 interface MainPanelProps {
   verdict: string | null;
@@ -31,15 +27,15 @@ export const MainPanel: React.FC<MainPanelProps> = ({
   onRequestVerdict
 }) => {
   return (
-    <div className="flex-grow flex flex-col relative overflow-hidden bg-slate-950/20 backdrop-blur-sm">
+    <div className="grow flex-col relative overflow-hidden bg-slate-950/20 backdrop-blur-sm">
       <LoadingIndicator loading={loading} />
       
       {/* Dynamic Background Pattern for Verdict Area */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(#22d3ee_1px,transparent_1px)] [background-size:24px_24px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(#22d3ee_1px,transparent_1px)] bg-size-[24px_24px]" />
       </div>
 
-      <div className="flex-grow overflow-auto p-6 md:p-8 custom-scrollbar">
+      <div className="grow overflow-auto p-6 md:p-8 custom-scrollbar">
         <div className="max-w-4xl mx-auto space-y-8">
           
           {/* Analysis Status Header */}
@@ -90,7 +86,7 @@ export const MainPanel: React.FC<MainPanelProps> = ({
       {/* Control Bar */}
       <div className="p-6 border-t border-white/5 bg-black/40 backdrop-blur-md">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-6">
-          <div className="flex-grow w-full md:w-auto">
+          <div className="grow w-full md:w-auto">
             <div className="group relative">
               <div className="absolute inset-0 bg-cyan-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
               <motion.button 

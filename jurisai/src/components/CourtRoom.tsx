@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Gavel,
   Shield,
@@ -13,12 +13,8 @@ import {
 import { useApp } from "../hooks/useApp";
 import { apiService } from "../services/api";
 import { SidePanel, MainPanel, ErrorNotification } from ".";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+
 
 interface CourtRoomProps {
   caseId: string;
@@ -206,7 +202,7 @@ export const CourtRoom: React.FC<CourtRoomProps> = ({ caseId }) => {
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
-            <div className="h-10 w-[1px] bg-white/10" />
+            <div className="h-10 w-px bg-white/10" />
             <div className="flex flex-col">
               <div className="flex items-center gap-3">
                 <Gavel className="w-5 h-5 text-cyan-400" />
@@ -240,7 +236,7 @@ export const CourtRoom: React.FC<CourtRoomProps> = ({ caseId }) => {
                 </div>
               </div>
             </div>
-            <div className="h-10 w-[1px] bg-white/10" />
+            <div className="h-10 w-px bg-white/10" />
             <div className="w-12 h-12 glass-card rounded-xl flex items-center justify-center border-cyan-500/30">
               <Activity className="w-6 h-6 text-cyan-400" />
             </div>
@@ -263,7 +259,7 @@ export const CourtRoom: React.FC<CourtRoomProps> = ({ caseId }) => {
                 Plaintiff Division
               </span>
             </div>
-            <div className="flex-grow glass-panel rounded-3xl overflow-hidden border-white/5">
+            <div className="grow glass-panel rounded-3xl overflow-hidden border-white/5">
               <SidePanel
                 side="plaintiff"
                 caseId={caseId}
@@ -292,7 +288,7 @@ export const CourtRoom: React.FC<CourtRoomProps> = ({ caseId }) => {
                 </span>
               </div>
             </div>
-            <div className="flex-grow glass-panel rounded-3xl overflow-hidden border-white/5 flex flex-col">
+            <div className="grow glass-panel rounded-3xl overflow-hidden border-white/5 flex flex-col">
               <MainPanel
                 verdict={verdict}
                 loading={loading}
@@ -314,7 +310,7 @@ export const CourtRoom: React.FC<CourtRoomProps> = ({ caseId }) => {
                 Defense Division
               </span>
             </div>
-            <div className="flex-grow glass-panel rounded-3xl overflow-hidden border-white/5">
+            <div className="grow glass-panel rounded-3xl overflow-hidden border-white/5">
               <SidePanel
                 side="defense"
                 caseId={caseId}

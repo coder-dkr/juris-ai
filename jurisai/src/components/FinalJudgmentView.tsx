@@ -3,12 +3,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Award, Clock } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import cn from '../lib/cn';
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 interface FinalJudgmentViewProps {
   decision: {
@@ -73,7 +69,7 @@ export const FinalJudgmentView: React.FC<FinalJudgmentViewProps> = ({
 
           {/* Case Timeline */}
           {caseTimeline.length > 1 && (
-            <div className="glass-card rounded-xl p-4 border border-green-500/10 bg-gradient-to-br from-green-500/5 to-transparent">
+            <div className="glass-card rounded-xl p-4 border border-green-500/10 bg-linear-to-br from-green-500/5 to-transparent">
               <div className="flex items-center gap-2 mb-3">
                 <Clock className="w-4 h-4 text-green-400" />
                 <h5 className="text-xs font-mono uppercase tracking-wider text-slate-400">Case Evolution</h5>

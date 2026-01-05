@@ -1,7 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { 
-  User, 
   Shield, 
   Scale, 
   Info,
@@ -10,12 +8,7 @@ import {
 } from 'lucide-react';
 import { UploadPanel } from './UploadPanel';
 import { ArgumentPanel } from './ArgumentPanel';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import cn from '../lib/cn';
 
 interface SidePanelProps {
   side: 'plaintiff' | 'defense';
@@ -78,7 +71,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
       </div>
       
       {/* Content Area */}
-      <div className="flex-grow overflow-y-auto custom-scrollbar p-6 space-y-8">
+      <div className="grow overflow-y-auto custom-scrollbar p-6 space-y-8">
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <Database className="w-4 h-4 text-slate-500" />

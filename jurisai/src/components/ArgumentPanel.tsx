@@ -1,22 +1,16 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Send, 
   History, 
-  MessageSquare, 
   ShieldAlert, 
-  ChevronRight,
   Zap,
   Lock
 } from 'lucide-react';
 import { useApp } from '../hooks/useApp';
 import { apiService } from '../services/api';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import cn from '../lib/cn';
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 interface ArgumentPanelProps {
   caseId?: string | null;
@@ -27,6 +21,8 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
   const [text, setText] = useState('');
   const { state, setLoading, setError, clearError, addArgument, surrenderCase } = useApp();
   const { phase, caseStatus, arguments: caseArguments, decisions } = state;
+
+  console.log(decisions)
 
   const isCaseActive = caseStatus === 'active' && phase === 'arguments';
   const isCaseClosed = phase === 'closed';
@@ -156,7 +152,7 @@ export const ArgumentPanel: React.FC<ArgumentPanelProps> = ({ caseId, side }) =>
             onClick={submitArg} 
             disabled={!caseId || !text.trim() || isCaseClosed || (hasInitialArgument && !canSubmitCounterArgument)}
             className={cn(
-              "flex-grow py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white flex items-center justify-center gap-2 transition-all shadow-lg",
+              "grow py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-white flex items-center justify-center gap-2 transition-all shadow-lg",
               btn.color,
               "disabled:opacity-40 disabled:grayscale"
             )}

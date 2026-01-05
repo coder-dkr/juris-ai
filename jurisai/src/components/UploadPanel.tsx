@@ -1,22 +1,15 @@
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Upload, 
   FileText, 
   X, 
   Plus, 
   CheckCircle2,
-  AlertCircle,
   FileUp
 } from 'lucide-react';
 import { useApp } from '../hooks/useApp';
 import { apiService } from '../services/api';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import cn from '../lib/cn';
 
 interface DocumentUpload {
   file: File;
@@ -156,7 +149,7 @@ export const UploadPanel: React.FC<UploadPanelProps> = ({ onUploaded, defaultSid
                     className="p-3 bg-white/5 border border-white/5 rounded-xl flex items-center gap-3 group/item"
                   >
                     <FileText className="w-4 h-4 text-slate-500 shrink-0" />
-                    <div className="flex-grow min-w-0">
+                    <div className="grow min-w-0">
                       <input
                         type="text"
                         value={doc.name}

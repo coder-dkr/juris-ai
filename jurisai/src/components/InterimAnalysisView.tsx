@@ -11,12 +11,7 @@ import {
   Scale,
   Activity
 } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import cn from '../lib/cn';
 
 interface InterimAnalysisViewProps {
   decision: {
@@ -186,7 +181,7 @@ export const InterimAnalysisView: React.FC<InterimAnalysisViewProps> = ({
                   initial={{ width: 0 }}
                   animate={{ width: `${confidence}%` }}
                   transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-                  className="h-full bg-gradient-to-r from-amber-500 to-green-400 rounded-full"
+                  className="h-full bg-linear-to-r from-amber-500 to-green-400 rounded-full"
                 />
               </div>
             </div>

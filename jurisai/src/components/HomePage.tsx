@@ -12,12 +12,9 @@ import {
   Activity,
   Award
 } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import cn from '../lib/cn';
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+
 
 interface HomePageProps {
   onCreateCase: (caseTitle: string, caseType: string) => void;
@@ -45,7 +42,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onCreateCase, onJoinCase }) 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden">
       {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent shadow-[0_0_20px_rgba(34,211,238,0.5)]" />
+      <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-cyan-500/50 to-transparent shadow-[0_0_20px_rgba(34,211,238,0.5)]" />
       
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
@@ -127,7 +124,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onCreateCase, onJoinCase }) 
                 />
               </div>
 
-              <div className="p-8 flex-grow">
+              <div className="p-8 grow">
                 <AnimatePresence mode="wait">
                   {activeTab === 'create' ? (
                     <motion.form
@@ -180,7 +177,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onCreateCase, onJoinCase }) 
                         type="submit"
                         className="w-full py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-3 group relative overflow-hidden"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-all" />
+                        <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-all" />
                         <Zap className="w-5 h-5 text-white fill-white" />
                         <span className="tracking-widest uppercase text-sm">Initiate Proceedings</span>
                         <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
