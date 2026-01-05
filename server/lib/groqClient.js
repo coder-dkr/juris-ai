@@ -86,7 +86,9 @@ function buildLegalPrompt({ caseId, case: caseDoc, arguments: allArgs, previousD
     prompt.push(`- Effectiveness of counter-arguments`);
     prompt.push(`- Impact on previous ruling`);
     prompt.push(`\n### 📊 POSITION SHIFT ANALYSIS`);
-    prompt.push(`Rate current strength: Plaintiff: X/100, Defense: Y/100`);
+    prompt.push(`**IMPORTANT:** Rate current strength on scale of 0-100:`);
+    prompt.push(`Plaintiff: [X]/100`);
+    prompt.push(`Defense: [Y]/100`);
     prompt.push(`Compare with previous decision and explain shifts`);
     prompt.push(`\n### ⚖️ REVISED ASSESSMENT`);
     prompt.push(`- Points UPHELD from previous ruling (with reasoning)`);
@@ -96,6 +98,7 @@ function buildLegalPrompt({ caseId, case: caseDoc, arguments: allArgs, previousD
     prompt.push(`- Should case continue with more arguments or move to settlement?`);
     prompt.push(`- What would strengthen each side's position?`);
     prompt.push(`- Recommendation: Continue/Settle/Final judgment needed`);
+    prompt.push(`- Analysis Confidence: [Z]%`);
   } else {
     prompt.push(`Provide final judgment considering all evidence, arguments, and any previous interim decisions.`);
     prompt.push(`\n**OUTPUT FORMAT - FINAL JUDGMENT:**`);
@@ -111,6 +114,77 @@ function buildLegalPrompt({ caseId, case: caseDoc, arguments: allArgs, previousD
   prompt.push(`\n**END OF CASE MATERIALS**`);
   
   return prompt.join('\n');
+}
+
+/**
+ * Extract structured data from verdict text
+ * @param {string} verdictText - The generated verdict text
+ * @param {string} requestType - Type of verdict (initial/interim/final)
+ * @returns {Object} Structured data extracted from the verdict
+ */
+function extractStructuredData(verdictText, requestType) {
+  const structured = {};
+  
+  try {
+    // Extract strength ratings (looking for patterns like "Plaintiff: 65/100" or "Plaintiff Strength: 65%")
+    const plaintiffStrengthMatch = verdictText.match(/Plaintiff[:\s]+(\d+)(?:\/100|%)/i);
+    const defenseStrengthMatch = verdictText.match(/Defense[:\s]+(\d+)(?:\/100|%)/i);
+    
+    if (plaintiffStrengthMatch) {
+      structured.plaintiffStrength = parseInt(plaintiffStrengthMatch[1]);
+    }
+    if (defenseStrengthMatch) {
+      structured.defenseStrength = parseInt(defenseStrengthMatch[1]);
+    }
+    
+    // For interim verdicts, try to extract key information
+    if (requestType === 'interim') {
+      // Extract stance change if present
+      const stanceChangeMatch = verdictText.match(/Key Shift[:\s]*\n([^\n]+)/i) || 
+                                 verdictText.match(/POSITION SHIFT[:\s]*\n([^\n]+)/i);
+      if (stanceChangeMatch) {
+        structured.argumentReview = {
+          stanceChange: stanceChangeMatch[1].trim()
+        };
+      }
+      
+      // Extract recommendation
+      const recommendationMatch = verdictText.match(/Recommendation[:\s]*(Continue|Settle|Final)/i);
+      if (recommendationMatch) {
+        structured.ruling = {
+          recommendation: recommendationMatch[1].toLowerCase()
+        };
+      }
+      
+      // Extract confidence if mentioned
+      const confidenceMatch = verdictText.match(/Confidence[:\s]+(\d+)%/i) ||
+                             verdictText.match(/Analysis Confidence[:\s]+(\d+)%/i);
+      if (confidenceMatch) {
+        if (!structured.ruling) structured.ruling = {};
+        structured.ruling.confidence = parseInt(confidenceMatch[1]);
+      } else {
+        // Default confidence based on strength balance
+        if (structured.plaintiffStrength && structured.defenseStrength) {
+          const diff = Math.abs(structured.plaintiffStrength - structured.defenseStrength);
+          structured.ruling = {
+            ...structured.ruling,
+            confidence: Math.min(95, 60 + diff)
+          };
+        }
+      }
+    }
+    
+    // Extract summary (first paragraph or first few sentences)
+    const summaryMatch = verdictText.match(/(?:CASE SUMMARY|SUMMARY)[:\s]*\n([^\n]+(?:\n[^\n]+)?)/i);
+    if (summaryMatch) {
+      structured.summary = summaryMatch[1].trim();
+    }
+    
+  } catch (error) {
+    console.error('Error extracting structured data:', error);
+  }
+  
+  return structured;
 }
 
 /**
@@ -193,8 +267,12 @@ Maintain professional legal language consistent with Indian court judgments.`
     console.timeEnd(`Groq Verdict Generation - Case ${caseId}`);
     console.log(`Groq Usage - Model: llama-3.3-70b-versatile, Tokens: ~${verdictText.length/4}`);
 
+    // Extract structured data from verdict text
+    const structured = extractStructuredData(verdictText, requestType);
+
     return { 
-      verdictText, 
+      verdictText,
+      structured,
       raw: {
         model: completion.model,
         usage: completion.usage,
